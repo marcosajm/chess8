@@ -1,0 +1,77 @@
+<!-- index.html -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="data:,">
+    <title>Chess — Play vs Engine</title>  
+    <link rel="stylesheet" href="./style.css">  
+  </head>
+  <body>
+    <div class="gameWrapper">
+      <div class="board" id="board" aria-label="Chessboard"></div>
+
+      <div class="controls" id="controls"  role="region" aria-label="Game controls">
+        <div class="row">
+          <button id="newGame">New Game</button>
+          <button id="flip">Flip Board</button>
+        </div>
+        <div class="grid2">
+          <div class="row">
+            <label for="side">You play:</label>
+            <select id="side">
+              <option value="white" selected>White</option>
+              <option value="black">Black</option>
+            </select>
+          </div>
+          <div class="row">
+            <label for="ai">Engine plays:</label>
+            <select id="ai">
+              <option value="black" selected>Black</option>
+              <option value="white">White</option>
+              <option value="none">None (2-Player)</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <label for="depth">AI depth</label>
+          <select id="depth">
+            <option value="2">2</option>
+            <option value="3" selected>3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </div>
+        <div class="row">
+          <button id="undo" disabled>Undo (session)</button>
+          <button id="hint">Hint</button>
+        </div>
+        <div class="status" id="status">Loading engine…</div>
+        <div class="tiny">Tip: click a piece, then its target square. Promotions will pop up choices.</div>
+      </div>
+      <div id="promotionModalOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="promotionTitle">
+        <div class="modal-content">
+          <h2 id="promotionTitle">Pawn Promotion</h2>
+          <p>Select a piece to promote your pawn to:</p>
+          <div class="promotion-options" role="list">
+            <button id="promoteQueen" data-piece="q" title="Promote to Queen" aria-label="Promote to Queen" type="button" role="listitem">♕</button>
+            <button id="promoteRook" data-piece="r" title="Promote to Rook" aria-label="Promote to Rook" type="button" role="listitem">♖</button>
+            <button id="promoteBishop" data-piece="b" title="Promote to Bishop" aria-label="Promote to Bishop" type="button" role="listitem">♗</button>
+            <button id="promoteKnight" data-piece="n" title="Promote to Knight" aria-label="Promote to Knight" type="button" role="listitem">♘</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="gameOverModalOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
+        <div class="modal-content game-over-modal">
+          <h2 id="gameOverTitle">Game Over</h2>
+          <p id="gameOverMessage"></p>
+          <button id="gameOverResetButton" type="button">Play Again</button>
+        </div>
+      </div>
+    </div>   
+    <script src="./main.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>

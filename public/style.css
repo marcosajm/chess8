@@ -1,0 +1,157 @@
+/* style.css */
+:root{
+  --square: 68px;
+  --light: #f0d9b5;
+  --dark:  #b58863;
+  --accent: #3a86ff;
+  --accent-2:#ff006e;
+  --bg: #0f172a;
+  --panel: #111827;
+  --text: #e5e7eb;
+}
+html, body{
+  height:100%;
+  margin:0;
+  background:#0b1220;
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,"Noto Sans",sans-serif
+}
+.wrap{max-width:1100px;margin:24px auto;display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:start}
+/* .board{display:grid;grid-template-columns:repeat(8,var(--square));grid-auto-rows:var(--square);border:6px solid #111827;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.35);overflow:hidden} */
+.sq{display:flex;align-items:center;justify-content:center;font-size:40px;user-select:none;cursor:pointer;transition:transform .04s}
+.sq.light{background:var(--light)}
+.sq.dark{background:var(--dark)}
+.sq.highlight{outline:4px solid rgba(58,134,255,.55);outline-offset:-4px}
+.sq.lastmove{box-shadow: inset 0 0 0 4px rgba(255,255,255,.35)}
+.side-panel{background:var(--panel);border-radius:16px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.row label{opacity:.8}
+button,select{background:#1f2937;color:var(--text);border:1px solid #334155;border-radius:10px;padding:10px 14px;font-weight:600;cursor:pointer}
+button:hover{filter:brightness(1.1)}
+button:active{transform:translateY(1px)}
+.status{margin-top:12px;background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:12px;font-size:14px;min-height:48px}
+.promo-mask{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;place-items:center;z-index:20}
+.promo-card{background:#0b1220;border:1px solid #334155;border-radius:16px;padding:16px;display:flex;gap:10px}
+.promo-card button{font-size:28px;padding:10px 14px}
+.bad{color:#ffb4b4}
+.ok{color:#9ae6b4}
+.flex{display:flex;gap:10px;align-items:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tiny{font-size:12px;opacity:.8}
+
+body {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+ /*  font-family: Arial, sans-serif; */
+}
+
+.gameWrapper {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 1rem;
+  align-items: start;
+}
+
+/* Board squares */
+#board {
+  display: grid;  
+  grid-template-columns: repeat(8, minmax(80px, 1fr));
+  grid-template-rows: repeat(8, minmax(80px, 1fr));
+  border: 2px solid #333;
+  aspect-ratio: 1 / 1;
+}
+
+.sq {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(20px, 4vw, 48px);
+  user-select: none;
+}
+
+#controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* On mobile: stack vertically, controls below board */
+@media (max-width: 962px) {
+  .gameWrapper {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+  }
+  #board {    
+    grid-template-columns: repeat(8, minmax(30px, 1fr));
+    grid-template-rows: repeat(8, minmax(30px, 1fr));    
+  }
+  #controls {
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  #controls select,
+  #controls button {
+    flex: 1 1 45%;
+    min-width: 120px;
+  }
+}
+/* On mobile: stack vertically, controls below board */
+@media (max-width: 420px) {
+ 
+  #board {    
+    grid-template-columns: repeat(8, minmax(25px, 1fr));
+    grid-template-rows: repeat(8, minmax(25px, 1fr));    
+  } 
+}
+
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-content {
+  background-color: #1f2937;
+  border-radius: 1.5rem;
+  padding: 2rem;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+  text-align: center;
+  max-width: 24rem;
+  width: 100%;
+}
+.promotion-options button {
+  background-color: #4b5563;
+  color: #fff;
+  font-size: 1.875rem;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out, transform 0.1s ease-in-out;
+}
+.promotion-options button:hover {
+  background-color: #6b7280;
+  transform: scale(1.05);
+}
+.game-over-modal button {
+  background-color: #4f46e5;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.15s ease-in-out;
+  border: none;
+  cursor: pointer;
+}
+.game-over-modal button:hover {
+  background-color: #4338ca;
+}
+.hidden {
+  display: none;
+}
