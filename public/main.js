@@ -90,7 +90,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: /tmp/tmpxlr_fhhc.js
+// include: /tmp/tmp_y0obwg6.js
 
   if (!Module['expectedDataFileDownloads']) Module['expectedDataFileDownloads'] = 0;
   Module['expectedDataFileDownloads']++;
@@ -213,21 +213,21 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
   })();
 
-// end include: /tmp/tmpxlr_fhhc.js
-// include: /tmp/tmppb61iqc_.js
+// end include: /tmp/tmp_y0obwg6.js
+// include: /tmp/tmpszxsa3ly.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if ((typeof ENVIRONMENT_IS_WASM_WORKER != 'undefined' && ENVIRONMENT_IS_WASM_WORKER) || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD) || (typeof ENVIRONMENT_IS_AUDIO_WORKLET != 'undefined' && ENVIRONMENT_IS_AUDIO_WORKLET)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: /tmp/tmppb61iqc_.js
-// include: /tmp/tmp_8y700oh.js
+  // end include: /tmp/tmpszxsa3ly.js
+// include: /tmp/tmpivtg86qb.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: /tmp/tmp_8y700oh.js
+  // end include: /tmp/tmpivtg86qb.js
 
 
 var programArgs = [];
@@ -4693,6 +4693,7 @@ function checkIncomingModuleAPI() {
 // Imports from the Wasm binary.
 var _get_empty = Module['_get_empty'] = makeInvalidEarlyAccess('_get_empty');
 var _init_board_wasm = Module['_init_board_wasm'] = makeInvalidEarlyAccess('_init_board_wasm');
+var _set_difficulty_wasm = Module['_set_difficulty_wasm'] = makeInvalidEarlyAccess('_set_difficulty_wasm');
 var _get_board_ptr_wasm = Module['_get_board_ptr_wasm'] = makeInvalidEarlyAccess('_get_board_ptr_wasm');
 var _get_current_turn_wasm = Module['_get_current_turn_wasm'] = makeInvalidEarlyAccess('_get_current_turn_wasm');
 var _find_ai_move_wasm_depth = Module['_find_ai_move_wasm_depth'] = makeInvalidEarlyAccess('_find_ai_move_wasm_depth');
@@ -4719,6 +4720,7 @@ var wasmMemory = makeInvalidEarlyAccess('wasmMemory');
 function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['get_empty'] != 'undefined', 'missing Wasm export: get_empty');
   assert(typeof wasmExports['init_board_wasm'] != 'undefined', 'missing Wasm export: init_board_wasm');
+  assert(typeof wasmExports['set_difficulty_wasm'] != 'undefined', 'missing Wasm export: set_difficulty_wasm');
   assert(typeof wasmExports['get_board_ptr_wasm'] != 'undefined', 'missing Wasm export: get_board_ptr_wasm');
   assert(typeof wasmExports['get_current_turn_wasm'] != 'undefined', 'missing Wasm export: get_current_turn_wasm');
   assert(typeof wasmExports['find_ai_move_wasm_depth'] != 'undefined', 'missing Wasm export: find_ai_move_wasm_depth');
@@ -4742,6 +4744,7 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['__indirect_function_table'] != 'undefined', 'missing Wasm export: __indirect_function_table');
   _get_empty = Module['_get_empty'] = createExportWrapper('get_empty', wasmExports['get_empty'], 0);
   _init_board_wasm = Module['_init_board_wasm'] = createExportWrapper('init_board_wasm', wasmExports['init_board_wasm'], 0);
+  _set_difficulty_wasm = Module['_set_difficulty_wasm'] = createExportWrapper('set_difficulty_wasm', wasmExports['set_difficulty_wasm'], 1);
   _get_board_ptr_wasm = Module['_get_board_ptr_wasm'] = createExportWrapper('get_board_ptr_wasm', wasmExports['get_board_ptr_wasm'], 0);
   _get_current_turn_wasm = Module['_get_current_turn_wasm'] = createExportWrapper('get_current_turn_wasm', wasmExports['get_current_turn_wasm'], 0);
   _find_ai_move_wasm_depth = Module['_find_ai_move_wasm_depth'] = createExportWrapper('find_ai_move_wasm_depth', wasmExports['find_ai_move_wasm_depth'], 2);

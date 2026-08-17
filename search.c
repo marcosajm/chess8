@@ -25,7 +25,7 @@ int evaluate_position(const Position *pos) {
     if (pos->side_to_move == BLACK)
         cp_score = -cp_score;
 
-    //printf("[EVAL] side=%s score=%.4f → %d cp\n", pos->side_to_move == WHITE ? "WHITE" : "BLACK", score, cp_score);
+    printf("[EVAL] side=%s score=%.4f → %d cp\n", pos->side_to_move == WHITE ? "WHITE" : "BLACK", score, cp_score);
 
     return cp_score;
 }

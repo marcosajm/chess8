@@ -12,6 +12,7 @@
   const pending_wasm     = Module.cwrap('get_pawn_promotion_pending_index_wasm', 'number', []);
   const game_state_wasm  = Module.cwrap('get_game_state_wasm', 'number', []);
   const evaluate_wasm    = Module.cwrap('evaluate_board', 'number', []);
+  const set_difficulty   = Module.cwrap('set_difficulty_wasm', 'number', ['number']);
 
   // ---- UI ----
   const boardEl = document.getElementById('board');
@@ -19,6 +20,7 @@
   const sideSel = document.getElementById('side');
   const aiSel = document.getElementById('ai');
   const depthSel = document.getElementById('depth');
+  const difficultySel = document.getElementById('difficulty');
   const promoMask = document.getElementById('promotionModalOverlay');
   const undoBtn = document.getElementById('undo');
   const hintBtn = document.getElementById('hint');
@@ -343,6 +345,16 @@
       return;
     }
     statusEl.innerHTML = `Hint: ${squareLabel(from)} → ${squareLabel(to)}`;
+  });
+
+  difficultySel.addEventListener('change', (e) => {
+    const level = Number(e.target.value) || 2;
+    const success = set_difficulty(level);
+    if (success) {
+      statusEl.innerHTML = `Difficulty set to Level ${level}`;
+    } else {
+      statusEl.innerHTML = `Failed to load Level ${level} model`;
+    }
   });
 
   undoBtn.disabled = false;

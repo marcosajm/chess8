@@ -42,6 +42,45 @@ EXPORT void init_board_wasm() {
     }
 }
 
+EXPORT int set_difficulty_wasm(int level) {
+    // Load NNUE model based on difficulty level (1-5)
+    // level 1 -> nnue.bin
+    // level 2 -> nnue2.bin
+    // level 3 -> nnue3.bin
+    // level 4 -> nnue4.bin
+    // level 5 -> nnue5.bin
+    
+    if (level < 1 || level > 5) {
+        fprintf(stderr, "[DIFFICULTY] Invalid level: %d (must be 1-5)\n", level);
+        return 0;
+    }
+    
+    char filename[64];
+    if (level == 1) {
+        snprintf(filename, sizeof(filename), "nnue.bin");
+    } else {
+        snprintf(filename, sizeof(filename), "nnue%d.bin", level);
+    }
+    
+    printf("[DIFFICULTY] Loading level %d: %s\n", level, filename);
+    
+    // Free previous NNUE weights
+    nnue_free(&g_nnue);
+    
+    // Load new NNUE weights
+    if (nnue_load_weights_from_file(&g_nnue, filename)) {
+        printf("[DIFFICULTY] Successfully loaded %s\n", filename);
+        return 1;
+    } else {
+        fprintf(stderr, "[DIFFICULTY] Failed to load %s\n", filename);
+        // Fallback to nnue.bin if loading fails
+        if (!nnue_load_weights_from_file(&g_nnue, "nnue.bin")) {
+            fprintf(stderr, "[DIFFICULTY] Fallback to nnue.bin also failed\n");
+        }
+        return 0;
+    }
+}
+
 EXPORT int8_t* get_board_ptr_wasm() {
     static int8_t board[64];
     fill_board_array(board, &global_pos);
@@ -272,7 +311,7 @@ static void uci_loop(void) {
         }
         else if (!strncmp(line, "go", 2)) {
             // Simple support: optional "depth N", else default depth 3
-            int depth = 3;
+            int depth = 0;
             const char *dptr = strstr(line, "depth ");
             if (dptr) depth = atoi(dptr + 6);
             if (depth <= 0) depth = 3;
