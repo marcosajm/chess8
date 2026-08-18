@@ -41,19 +41,19 @@ class Config:
     
     # Data generation - FIXED for Stockfish compatibility
     DEPTH = 24
-    NUM_GAMES = 10  # Start with fewer games for testing
-    MAX_MOVES = 56
+    NUM_GAMES = 50  # Start with fewer games for testing
+    MAX_MOVES = 12
     STOCKFISH_PATH = "/usr/games/stockfish"
     
     # Stockfish skill levels (0-20 for newer versions)
     # 0 = weakest, 20 = strongest
-    SKILL_LEVELS = [20]  # Fixed range 0, 5, 10, 15, 20
+    STOCKFISH_SKILL_LEVELS = [0, 5, 10, 15, 20]  # Stockfish opponent levels
     
-    # Bot playing style configuration
+    # Bot play style configuration (OUR bot, not Stockfish)
     # 'worst' = play the worst possible moves (minimum evaluation)
     # 'average' = play average moves (middle of evaluation range)
     # 'best' = play the best moves (maximum evaluation) - default behavior
-    BOT_PLAY_STYLE = 'worst'  # Options: 'worst', 'average', 'best'
+    OUR_BOT_PLAY_STYLE = 'worst'  # Options: 'worst', 'average', 'best'
     
     # Output files
     DATA_FILE = "training_data_prod.bin"
@@ -266,10 +266,10 @@ class NNUEProduction(nn.Module):
         
         return flat_array
 
-# ============== Bot Move Selector ==============
-class BotMoveSelector:
+# ============== Bot Move Selector (OUR Bot) ==============
+class OurBotMoveSelector:
     """
-    Selects moves based on the configured play style:
+    Selects moves for OUR bot based on the configured play style:
     - 'worst': Always chooses the move with the minimum evaluation
     - 'average': Chooses moves in the middle of the evaluation range
     - 'best': Chooses the move with the maximum evaluation (default)
@@ -283,7 +283,7 @@ class BotMoveSelector:
         
         Args:
             board: Current chess board
-            engine: Stockfish engine instance
+            engine: Stockfish engine instance (used for evaluation)
             depth: Analysis depth
             style: 'worst', 'average', or 'best'
             
@@ -306,7 +306,7 @@ class BotMoveSelector:
                 board_copy = board.copy()
                 board_copy.push(move)
                 
-                # Analyze the resulting position
+                # Analyze the resulting position using Stockfish
                 analysis = engine.analyse(board_copy, limit=chess.engine.Limit(depth=depth))
                 score = analysis['score'].white().score()
                 
@@ -330,35 +330,32 @@ class BotMoveSelector:
         if style == 'worst':
             # Select the move with the lowest score (worst move)
             selected = move_scores[0]
-            print(f"  🎯 Bot playing WORST move (score: {selected[1]:.2f})")
+            print(f"  🎯 OUR Bot playing WORST move (score: {selected[1]:.2f})")
             return selected
         
         elif style == 'average':
             # Select a move in the middle of the range
-            # Use the median or a random move from the middle third
-            mid_idx = len(move_scores) // 2
-            
-            # Add some randomness to avoid always the same move
-            # Choose from the middle 30% of moves
+            # Choose from the middle 30% of moves for variety
             lower_bound = max(0, int(len(move_scores) * 0.35))
             upper_bound = min(len(move_scores), int(len(move_scores) * 0.65))
             
             if upper_bound <= lower_bound:
                 # Fallback to median
+                mid_idx = len(move_scores) // 2
                 selected = move_scores[mid_idx]
             else:
                 # Randomly select from the middle range
                 random_idx = random.randint(lower_bound, upper_bound - 1)
                 selected = move_scores[random_idx]
             
-            print(f"  🎯 Bot playing AVERAGE move (score: {selected[1]:.2f}, "
+            print(f"  🎯 OUR Bot playing AVERAGE move (score: {selected[1]:.2f}, "
                   f"range: {move_scores[0][1]:.2f} to {move_scores[-1][1]:.2f})")
             return selected
         
         else:  # 'best' or default
             # Select the move with the highest score
             selected = move_scores[-1]
-            print(f"  🎯 Bot playing BEST move (score: {selected[1]:.2f})")
+            print(f"  🎯 OUR Bot playing BEST move (score: {selected[1]:.2f})")
             return selected
 
 # ============== Data Generator ==============
@@ -373,26 +370,28 @@ class DataGenerator:
     def __init__(self, stockfish_path: str = Config.STOCKFISH_PATH):
         self.engine = None
         self.stockfish_path = stockfish_path
-        self.bot_style = Config.BOT_PLAY_STYLE
+        self.our_bot_style = Config.OUR_BOT_PLAY_STYLE
     
-    def start_engine(self, strength: Optional[int] = None):
+    def start_stockfish_engine(self, skill_level: Optional[int] = None):
+        """Start Stockfish engine with specific skill level"""
         if not os.path.exists(self.stockfish_path):
             raise FileNotFoundError(f"Stockfish not found: {self.stockfish_path}")
         self.engine = chess.engine.SimpleEngine.popen_uci(self.stockfish_path)
         self.engine.configure({"Hash": 128, "Threads": 2})
         
-        # Only set Skill Level if provided and within valid range
-        if strength is not None:
+        # Configure Stockfish with skill level (this is the opponent)
+        if skill_level is not None:
             try:
-                self.engine.configure({"Skill Level": strength})
+                self.engine.configure({"Skill Level": skill_level})
+                print(f"  ⚙️  Stockfish configured with Skill Level: {skill_level}")
             except chess.engine.EngineError as e:
-                print(f"  Warning: Could not set Skill Level {strength}: {e}")
+                print(f"  Warning: Could not set Skill Level {skill_level}: {e}")
                 # If Skill Level fails, use UCI_Elo instead (alternative)
                 try:
                     # Convert skill level to approximate Elo
-                    elo = 800 + (strength * 100)
+                    elo = 800 + (skill_level * 100)
                     self.engine.configure({"UCI_Elo": elo})
-                    print(f"  Using UCI_Elo: {elo}")
+                    print(f"  ⚙️  Stockfish configured with UCI_Elo: {elo}")
                 except:
                     pass  # Fall back to default strength
     
@@ -402,32 +401,33 @@ class DataGenerator:
             self.engine = None
     
     def generate_data(self, num_games: int = Config.NUM_GAMES):
-        print(f"\n📊 Generating {num_games} games with defensive features...")
+        print(f"\n📊 Generating {num_games} games...")
         print(f"   Stockfish path: {self.stockfish_path}")
-        print(f"   Skill levels: {Config.SKILL_LEVELS}")
-        print(f"   Bot play style: {self.bot_style.upper()}")
+        print(f"   Stockfish skill levels: {Config.STOCKFISH_SKILL_LEVELS}")
+        print(f"   OUR Bot play style: {self.our_bot_style.upper()}")
+        print(f"   Note: Stockfish plays at configured skill levels, OUR bot plays with '{self.our_bot_style}' style")
         
         all_positions = []
         openings = self._get_openings()
         
-        # Use skill levels from config (0-20 range)
-        strengths = Config.SKILL_LEVELS
-        games_per_strength = max(1, num_games // len(strengths))
+        # Use skill levels from config
+        stockfish_levels = Config.STOCKFISH_SKILL_LEVELS
+        games_per_level = max(1, num_games // len(stockfish_levels))
         
         start_time = time.time()
         
-        for strength_idx, strength in enumerate(strengths):
-            print(f"\n  Playing with Stockfish skill level: {strength}")
-            self.start_engine(strength)
+        for level_idx, skill_level in enumerate(stockfish_levels):
+            print(f"\n  🎯 Playing against Stockfish at skill level: {skill_level}")
+            self.start_stockfish_engine(skill_level)
             
-            for game_idx in range(games_per_strength):
-                opening = openings[(game_idx + strength_idx * 100) % len(openings)]
-                positions = self.play_game(opening)
+            for game_idx in range(games_per_level):
+                opening = openings[(game_idx + level_idx * 100) % len(openings)]
+                positions = self.play_game(opening, skill_level)
                 all_positions.extend(positions)
                 
                 if (game_idx + 1) % 50 == 0:
                     elapsed = time.time() - start_time
-                    total_games = strength_idx * games_per_strength + game_idx + 1
+                    total_games = level_idx * games_per_level + game_idx + 1
                     avg_pos = len(all_positions) // total_games if total_games > 0 else 0
                     print(f"    Game {total_games}/{num_games} - {len(all_positions)} positions "
                           f"(~{avg_pos}/game) - {elapsed/60:.1f}min")
@@ -437,7 +437,7 @@ class DataGenerator:
         self._save_data(all_positions)
         return all_positions
     
-    def play_game(self, opening_fen: Optional[str] = None) -> List[TrainingPosition]:
+    def play_game(self, opening_fen: Optional[str] = None, stockfish_level: int = 0) -> List[TrainingPosition]:
         board = chess.Board(opening_fen) if opening_fen else chess.Board()
         positions = []
         move_count = 0
@@ -445,6 +445,7 @@ class DataGenerator:
         visited_positions = set()
         
         while not board.is_game_over() and move_count < Config.MAX_MOVES:
+            # Analyze current position using Stockfish
             try:
                 analysis = self.engine.analyse(board, limit=depth_limit)
                 score = analysis['score'].white().score()
@@ -469,33 +470,56 @@ class DataGenerator:
                 tactical_score=tactical_score
             ))
             
-            # Choose move based on bot style
-            # 4% random moves for variety, 96% follow the chosen style
-            if random.random() < 0.04:
-                legal_moves = list(board.legal_moves)
-                if legal_moves:
-                    move = random.choice(legal_moves)
+            # Determine whose turn it is
+            # If it's OUR bot's turn, use our bot selector
+            # If it's Stockfish's turn, let Stockfish play normally
+            is_our_turn = (move_count % 2 == 0)  # Our bot plays first (white)
+            
+            if is_our_turn:
+                # OUR BOT's turn - use our bot selector with configured style
+                # 4% random moves for variety
+                if random.random() < 0.04:
+                    legal_moves = list(board.legal_moves)
+                    if legal_moves:
+                        move = random.choice(legal_moves)
+                    else:
+                        break
                 else:
-                    break
-            else:
-                try:
-                    # Use the bot move selector instead of engine.play
-                    move, _ = BotMoveSelector.select_move(
-                        board, 
-                        self.engine, 
-                        depth=Config.DEPTH - 4,
-                        style=self.bot_style
-                    )
-                    if move is None:
-                        # Fallback to engine if no move selected
-                        result = self.engine.play(board, limit=chess.engine.Limit(depth=Config.DEPTH-4))
-                        move = result.move
-                except Exception as e:
-                    print(f"  Warning: Error selecting move: {e}")
                     try:
-                        result = self.engine.play(board, limit=chess.engine.Limit(depth=Config.DEPTH-4))
-                        move = result.move
-                    except:
+                        move, _ = OurBotMoveSelector.select_move(
+                            board, 
+                            self.engine, 
+                            depth=Config.DEPTH - 4,
+                            style=self.our_bot_style
+                        )
+                        if move is None:
+                            # Fallback to random move if no move selected
+                            legal_moves = list(board.legal_moves)
+                            if legal_moves:
+                                move = random.choice(legal_moves)
+                            else:
+                                break
+                    except Exception as e:
+                        print(f"  Warning: Error in OUR bot move selection: {e}")
+                        # Fallback to Stockfish
+                        try:
+                            result = self.engine.play(board, limit=chess.engine.Limit(depth=Config.DEPTH-4))
+                            move = result.move
+                        except:
+                            break
+            else:
+                # STOCKFISH's turn - let Stockfish play normally with its skill level
+                try:
+                    # Stockfish plays with its configured skill level
+                    result = self.engine.play(board, limit=chess.engine.Limit(depth=Config.DEPTH-2))
+                    move = result.move
+                except Exception as e:
+                    print(f"  Warning: Stockfish move error: {e}")
+                    # Fallback to random move
+                    legal_moves = list(board.legal_moves)
+                    if legal_moves:
+                        move = random.choice(legal_moves)
+                    else:
                         break
             
             board.push(move)
@@ -509,6 +533,8 @@ class DataGenerator:
         # Determine result
         result = 0.0
         if board.is_checkmate():
+            # Check who won (if move_count is even, black won, if odd, white won)
+            # White (OUR bot) wins on odd moves, Black (Stockfish) wins on even moves
             result = 1.0 if move_count % 2 == 1 else 0.0
         elif board.is_stalemate() or board.is_insufficient_material():
             result = 0.5
@@ -734,19 +760,20 @@ def select_data_file() -> str:
 # ============== Bot Style Selection ==============
 def select_bot_style():
     """
-    Ask the user to select the bot play style.
+    Ask the user to select the play style for OUR bot.
     Returns the selected style.
     """
     print("\n" + "=" * 80)
-    print("🎮 BOT PLAY STYLE SELECTION")
+    print("🎮 OUR BOT PLAY STYLE SELECTION")
     print("=" * 80)
     
-    print("Select how the bot should play against Stockfish:")
+    print("Select how OUR bot should play against Stockfish:")
     print("  1. WORST - Always play the worst possible moves (minimum evaluation)")
     print("  2. AVERAGE - Play average moves (middle of evaluation range)")
     print("  3. BEST - Play the best moves (maximum evaluation) [default]")
+    print("\nNote: Stockfish will play with skill levels 0, 5, 10, 15, 20")
     
-    current_style = Config.BOT_PLAY_STYLE
+    current_style = Config.OUR_BOT_PLAY_STYLE
     print(f"\nCurrent style: {current_style.upper()}")
     
     while True:
@@ -757,15 +784,15 @@ def select_bot_style():
             return current_style
         
         elif choice == '1':
-            print("✅ Bot will play WORST moves")
+            print("✅ OUR Bot will play WORST moves")
             return 'worst'
         
         elif choice == '2':
-            print("✅ Bot will play AVERAGE moves")
+            print("✅ OUR Bot will play AVERAGE moves")
             return 'average'
         
         elif choice == '3':
-            print("✅ Bot will play BEST moves")
+            print("✅ OUR Bot will play BEST moves")
             return 'best'
         
         else:
@@ -784,8 +811,8 @@ def main():
         print("Please install Stockfish or update STOCKFISH_PATH in Config")
         return
     
-    # Step 1: Select bot play style
-    Config.BOT_PLAY_STYLE = select_bot_style()
+    # Step 1: Select bot play style for OUR bot
+    Config.OUR_BOT_PLAY_STYLE = select_bot_style()
     
     # Step 2: Select data file or generate new data
     data_file = select_data_file()
@@ -857,7 +884,8 @@ def main():
     print("✅ Production training complete!")
     print(f"  WASM weights: {Config.WASM_WEIGHTS_FILE}")
     print(f"  Model: {Config.MODEL_FILE}")
-    print(f"  Bot play style used: {Config.BOT_PLAY_STYLE.upper()}")
+    print(f"  Stockfish levels used: {Config.STOCKFISH_SKILL_LEVELS}")
+    print(f"  OUR Bot play style: {Config.OUR_BOT_PLAY_STYLE.upper()}")
     print("=" * 80)
 
 def verify_export(filepath):
