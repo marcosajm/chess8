@@ -18,6 +18,8 @@
 // WASM interface
 // ===============
 
+static int nnue_level = 1;
+
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
 #endif
@@ -37,8 +39,13 @@ EXPORT void init_board_wasm() {
     promotion_pending = -1;
     printf("[INIT] Board initialized with starting FEN\n");
     print_board_state();
-    if (!nnue_load_weights_from_file(&g_nnue, "nnue.bin")) {
-        fprintf(stderr, "Error loading NNUE weights\n");
+    if (!g_nnue.loaded) {
+        if (nnue_load_weights_from_file(&g_nnue, "nnue.bin")) {
+            nnue_level = 1;
+            printf("[NNUE] Active model: Level %d (nnue.bin)\n", nnue_level);
+        } else {
+            fprintf(stderr, "Error loading NNUE weights\n");
+        }
     }
 }
 
@@ -190,16 +197,16 @@ EXPORT int set_difficulty_wasm(int level) {
         snprintf(model_path, sizeof(model_path), "nnue%d.bin", level);
     }
 
-    nnue_free(&g_nnue);
-    if (nnue_load_weights_from_file(&g_nnue, model_path)) {
+    NNUEWeights candidate = {0};
+    if (nnue_load_weights_from_file(&candidate, model_path)) {
+        nnue_free(&g_nnue);
+        g_nnue = candidate;
+        nnue_level = level;
         printf("[DIFFICULTY] Successfully loaded %s\n", model_path);
         return 1;
     }
 
     fprintf(stderr, "[DIFFICULTY] Failed to load %s\n", model_path);
-    if (!nnue_load_weights_from_file(&g_nnue, "nnue.bin")) {
-        fprintf(stderr, "[DIFFICULTY] Fallback to nnue.bin also failed\n");
-    }
     return 0;
 }
 
