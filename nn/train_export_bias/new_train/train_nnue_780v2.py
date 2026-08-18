@@ -13,7 +13,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Tuple
 import random
 import time
 import os
@@ -41,13 +41,19 @@ class Config:
     
     # Data generation - FIXED for Stockfish compatibility
     DEPTH = 24
-    NUM_GAMES = 50  # Start with fewer games for testing
-    MAX_MOVES = 12
+    NUM_GAMES = 10  # Start with fewer games for testing
+    MAX_MOVES = 56
     STOCKFISH_PATH = "/usr/games/stockfish"
     
     # Stockfish skill levels (0-20 for newer versions)
     # 0 = weakest, 20 = strongest
-    SKILL_LEVELS = [0]  # Fixed range 0, 5, 10, 15, 20
+    SKILL_LEVELS = [20]  # Fixed range 0, 5, 10, 15, 20
+    
+    # Bot playing style configuration
+    # 'worst' = play the worst possible moves (minimum evaluation)
+    # 'average' = play average moves (middle of evaluation range)
+    # 'best' = play the best moves (maximum evaluation) - default behavior
+    BOT_PLAY_STYLE = 'worst'  # Options: 'worst', 'average', 'best'
     
     # Output files
     DATA_FILE = "training_data_prod.bin"
@@ -260,6 +266,101 @@ class NNUEProduction(nn.Module):
         
         return flat_array
 
+# ============== Bot Move Selector ==============
+class BotMoveSelector:
+    """
+    Selects moves based on the configured play style:
+    - 'worst': Always chooses the move with the minimum evaluation
+    - 'average': Chooses moves in the middle of the evaluation range
+    - 'best': Chooses the move with the maximum evaluation (default)
+    """
+    
+    @staticmethod
+    def select_move(board: chess.Board, engine: chess.engine.SimpleEngine, 
+                    depth: int, style: str = 'worst') -> Tuple[chess.Move, float]:
+        """
+        Select a move based on the specified style.
+        
+        Args:
+            board: Current chess board
+            engine: Stockfish engine instance
+            depth: Analysis depth
+            style: 'worst', 'average', or 'best'
+            
+        Returns:
+            Tuple of (selected_move, evaluation_score)
+        """
+        legal_moves = list(board.legal_moves)
+        if not legal_moves:
+            return None, 0.0
+        
+        # If only one legal move, return it
+        if len(legal_moves) == 1:
+            return legal_moves[0], 0.0
+        
+        # Analyze all legal moves
+        move_scores = []
+        for move in legal_moves:
+            try:
+                # Make the move on a copy
+                board_copy = board.copy()
+                board_copy.push(move)
+                
+                # Analyze the resulting position
+                analysis = engine.analyse(board_copy, limit=chess.engine.Limit(depth=depth))
+                score = analysis['score'].white().score()
+                
+                if score is None:
+                    score = 0
+                
+                # Adjust score based on whose turn it is
+                if board.turn == chess.BLACK:
+                    score = -score
+                
+                move_scores.append((move, score))
+            except:
+                move_scores.append((move, 0))
+        
+        if not move_scores:
+            return random.choice(legal_moves), 0.0
+        
+        # Sort by score
+        move_scores.sort(key=lambda x: x[1])
+        
+        if style == 'worst':
+            # Select the move with the lowest score (worst move)
+            selected = move_scores[0]
+            print(f"  🎯 Bot playing WORST move (score: {selected[1]:.2f})")
+            return selected
+        
+        elif style == 'average':
+            # Select a move in the middle of the range
+            # Use the median or a random move from the middle third
+            mid_idx = len(move_scores) // 2
+            
+            # Add some randomness to avoid always the same move
+            # Choose from the middle 30% of moves
+            lower_bound = max(0, int(len(move_scores) * 0.35))
+            upper_bound = min(len(move_scores), int(len(move_scores) * 0.65))
+            
+            if upper_bound <= lower_bound:
+                # Fallback to median
+                selected = move_scores[mid_idx]
+            else:
+                # Randomly select from the middle range
+                random_idx = random.randint(lower_bound, upper_bound - 1)
+                selected = move_scores[random_idx]
+            
+            print(f"  🎯 Bot playing AVERAGE move (score: {selected[1]:.2f}, "
+                  f"range: {move_scores[0][1]:.2f} to {move_scores[-1][1]:.2f})")
+            return selected
+        
+        else:  # 'best' or default
+            # Select the move with the highest score
+            selected = move_scores[-1]
+            print(f"  🎯 Bot playing BEST move (score: {selected[1]:.2f})")
+            return selected
+
 # ============== Data Generator ==============
 @dataclass
 class TrainingPosition:
@@ -272,6 +373,7 @@ class DataGenerator:
     def __init__(self, stockfish_path: str = Config.STOCKFISH_PATH):
         self.engine = None
         self.stockfish_path = stockfish_path
+        self.bot_style = Config.BOT_PLAY_STYLE
     
     def start_engine(self, strength: Optional[int] = None):
         if not os.path.exists(self.stockfish_path):
@@ -303,6 +405,7 @@ class DataGenerator:
         print(f"\n📊 Generating {num_games} games with defensive features...")
         print(f"   Stockfish path: {self.stockfish_path}")
         print(f"   Skill levels: {Config.SKILL_LEVELS}")
+        print(f"   Bot play style: {self.bot_style.upper()}")
         
         all_positions = []
         openings = self._get_openings()
@@ -366,8 +469,9 @@ class DataGenerator:
                 tactical_score=tactical_score
             ))
             
-            # 15% random moves for variety
-            if random.random() < 0.96:
+            # Choose move based on bot style
+            # 4% random moves for variety, 96% follow the chosen style
+            if random.random() < 0.04:
                 legal_moves = list(board.legal_moves)
                 if legal_moves:
                     move = random.choice(legal_moves)
@@ -375,10 +479,24 @@ class DataGenerator:
                     break
             else:
                 try:
-                    result = self.engine.play(board, limit=chess.engine.Limit(depth=Config.DEPTH-4))
-                    move = result.move
-                except:
-                    break
+                    # Use the bot move selector instead of engine.play
+                    move, _ = BotMoveSelector.select_move(
+                        board, 
+                        self.engine, 
+                        depth=Config.DEPTH - 4,
+                        style=self.bot_style
+                    )
+                    if move is None:
+                        # Fallback to engine if no move selected
+                        result = self.engine.play(board, limit=chess.engine.Limit(depth=Config.DEPTH-4))
+                        move = result.move
+                except Exception as e:
+                    print(f"  Warning: Error selecting move: {e}")
+                    try:
+                        result = self.engine.play(board, limit=chess.engine.Limit(depth=Config.DEPTH-4))
+                        move = result.move
+                    except:
+                        break
             
             board.push(move)
             move_count += 1
@@ -613,6 +731,46 @@ def select_data_file() -> str:
     
     return None
 
+# ============== Bot Style Selection ==============
+def select_bot_style():
+    """
+    Ask the user to select the bot play style.
+    Returns the selected style.
+    """
+    print("\n" + "=" * 80)
+    print("🎮 BOT PLAY STYLE SELECTION")
+    print("=" * 80)
+    
+    print("Select how the bot should play against Stockfish:")
+    print("  1. WORST - Always play the worst possible moves (minimum evaluation)")
+    print("  2. AVERAGE - Play average moves (middle of evaluation range)")
+    print("  3. BEST - Play the best moves (maximum evaluation) [default]")
+    
+    current_style = Config.BOT_PLAY_STYLE
+    print(f"\nCurrent style: {current_style.upper()}")
+    
+    while True:
+        choice = input("\nSelect option (1-3) or press Enter to keep current: ").strip()
+        
+        if choice == '':
+            print(f"✅ Keeping current style: {current_style.upper()}")
+            return current_style
+        
+        elif choice == '1':
+            print("✅ Bot will play WORST moves")
+            return 'worst'
+        
+        elif choice == '2':
+            print("✅ Bot will play AVERAGE moves")
+            return 'average'
+        
+        elif choice == '3':
+            print("✅ Bot will play BEST moves")
+            return 'best'
+        
+        else:
+            print("❌ Invalid option. Please enter 1, 2, 3, or press Enter.")
+
 # ============== Main ==============
 def main():
     print("=" * 80)
@@ -626,7 +784,10 @@ def main():
         print("Please install Stockfish or update STOCKFISH_PATH in Config")
         return
     
-    # Step 1: Select data file or generate new data
+    # Step 1: Select bot play style
+    Config.BOT_PLAY_STYLE = select_bot_style()
+    
+    # Step 2: Select data file or generate new data
     data_file = select_data_file()
     
     if data_file is None:
@@ -638,7 +799,7 @@ def main():
     else:
         print(f"\n📂 Using data file: {data_file}")
     
-    # Step 2: Load and prepare data
+    # Step 3: Load and prepare data
     print("\n📂 Loading data...")
     try:
         dataset = NNUE_Dataset(data_file)
@@ -674,7 +835,7 @@ def main():
     print(f"  Training: {len(train_dataset):,} positions")
     print(f"  Validation: {len(val_dataset):,} positions")
     
-    # Step 3: Train model
+    # Step 4: Train model
     print(f"\n🧠 Creating production model...")
     model = NNUEProduction()
     total_params = sum(p.numel() for p in model.parameters())
@@ -682,20 +843,21 @@ def main():
     
     model = train_model(model, train_loader, val_features, val_scores)
     
-    # Step 4: Export for WASM
+    # Step 5: Export for WASM
     print(f"\n💾 Exporting WASM weights...")
     model.export_weights_wasm(Config.WASM_WEIGHTS_FILE)
     
     # Also save PyTorch model
     torch.save(model.state_dict(), Config.MODEL_FILE)
     
-    # Step 5: Verify
+    # Step 6: Verify
     verify_export(Config.WASM_WEIGHTS_FILE)
     
     print("\n" + "=" * 80)
     print("✅ Production training complete!")
     print(f"  WASM weights: {Config.WASM_WEIGHTS_FILE}")
     print(f"  Model: {Config.MODEL_FILE}")
+    print(f"  Bot play style used: {Config.BOT_PLAY_STYLE.upper()}")
     print("=" * 80)
 
 def verify_export(filepath):

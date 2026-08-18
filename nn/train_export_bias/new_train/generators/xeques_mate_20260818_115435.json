@@ -1,0 +1,102 @@
+{
+  "metadata": {
+    "criado_em": "2026-08-18T11:54:35.808217",
+    "total": 10,
+    "validas": 0,
+    "media_pecas": 0,
+    "min_pecas": 0,
+    "max_pecas": 0
+  },
+  "posicoes": [
+    {
+      "id": 1,
+      "fen": "7k/6Q1/7K/8/8/8/8/8 w - - 0 1",
+      "descricao": "Mate garantido (Dama g7) (+0 peças)",
+      "num_pecas": 3,
+      "is_checkmate": false,
+      "is_check": false,
+      "timestamp": "2026-08-18T11:54:22.118907"
+    },
+    {
+      "id": 2,
+      "fen": "7k/6Q1/7K/8/8/8/8/8 w - - 0 1",
+      "descricao": "Mate garantido (Dama g7) (+0 peças)",
+      "num_pecas": 3,
+      "is_checkmate": false,
+      "is_check": false,
+      "timestamp": "2026-08-18T11:54:23.682716"
+    },
+    {
+      "id": 3,
+      "fen": "7k/6Q1/7K/8/8/8/8/8 w - - 0 1",
+      "descricao": "Mate garantido (Dama g7) (+0 peças)",
+      "num_pecas": 3,
+      "is_checkmate": false,
+      "is_check": false,
+      "timestamp": "2026-08-18T11:54:25.231229"
+    },
+    {
+      "id": 4,
+      "fen": "7k/6Q1/7K/8/8/8/8/8 w - - 0 1",
+      "descricao": "Mate garantido (Dama g7) (+0 peças)",
+      "num_pecas": 3,
+      "is_checkmate": false,
+      "is_check": false,
+      "timestamp": "2026-08-18T11:54:26.779075"
+    },
+    {
+      "id": 5,
+      "fen": "7k/6Q1/7K/8/8/8/8/8 w - - 0 1",
+      "descricao": "Mate garantido (Dama g7) (+0 peças)",
+      "num_pecas": 3,
+      "is_checkmate": false,
+      "is_check": false,
+      "timestamp": "2026-08-18T11:54:28.261122"
+    },
+    {
+      "id": 6,
+      "fen": "7k/6Q1/7K/8/8/8/8/8 w - - 0 1",
+      "descricao": "Mate garantido (Dama g7) (+0 peças)",
+      "num_pecas": 3,
+      "is_checkmate": false,
+      "is_check": false,
+      "timestamp": "2026-08-18T11:54:29.813531"
+    },
+    {
+      "id": 7,
+      "fen": "7k/6Q1/7K/8/8/8/8/8 w - - 0 1",
+      "descricao": "Mate garantido (Dama g7) (+0 peças)",
+      "num_pecas": 3,
+      "is_checkmate": false,
+      "is_check": false,
+      "timestamp": "2026-08-18T11:54:31.193163"
+    },
+    {
+      "id": 8,
+      "fen": "7k/6Q1/7K/8/8/8/8/8 w - - 0 1",
+      "descricao": "Mate garantido (Dama g7) (+0 peças)",
+      "num_pecas": 3,
+      "is_checkmate": false,
+      "is_check": false,
+      "timestamp": "2026-08-18T11:54:32.708563"
+    },
+    {
+      "id": 9,
+      "fen": "7k/6Q1/7K/8/8/8/8/8 w - - 0 1",
+      "descricao": "Mate garantido (Dama g7) (+0 peças)",
+      "num_pecas": 3,
+      "is_checkmate": false,
+      "is_check": false,
+      "timestamp": "2026-08-18T11:54:34.260334"
+    },
+    {
+      "id": 10,
+      "fen": "7k/6Q1/7K/8/8/8/8/8 w - - 0 1",
+      "descricao": "Mate garantido (Dama g7) (+0 peças)",
+      "num_pecas": 3,
+      "is_checkmate": false,
+      "is_check": false,
+      "timestamp": "2026-08-18T11:54:35.807468"
+    }
+  ]
+}
