@@ -12,7 +12,9 @@
   const pending_wasm     = Module.cwrap('get_pawn_promotion_pending_index_wasm', 'number', []);
   const game_state_wasm  = Module.cwrap('get_game_state_wasm', 'number', []);
   const evaluate_wasm    = Module.cwrap('evaluate_board', 'number', []);
-  const set_difficulty   = Module.cwrap('set_difficulty_wasm', 'number', ['number']);
+  const set_difficulty   = typeof Module._set_difficulty_wasm === 'function'
+    ? Module.cwrap('set_difficulty_wasm', 'number', ['number'])
+    : null;
 
   // ---- UI ----
   const boardEl = document.getElementById('board');
@@ -349,6 +351,10 @@
 
   difficultySel.addEventListener('change', (e) => {
     const level = Number(e.target.value) || 2;
+    if (!set_difficulty) {
+      statusEl.innerHTML = 'Difficulty is unavailable in this engine build';
+      return;
+    }
     const success = set_difficulty(level);
     if (success) {
       statusEl.innerHTML = `Difficulty set to Level ${level}`;

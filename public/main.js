@@ -90,7 +90,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: /tmp/tmp_y0obwg6.js
+// include: /tmp/tmp9l7xooed.js
 
   if (!Module['expectedDataFileDownloads']) Module['expectedDataFileDownloads'] = 0;
   Module['expectedDataFileDownloads']++;
@@ -209,25 +209,25 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
     }
 
     }
-    loadPackage({"files": [{"filename": "/nnue.bin", "start": 0, "end": 873988}], "remote_package_size": 873988});
+    loadPackage({"files": [{"filename": "/nnue.bin", "start": 0, "end": 873988}, {"filename": "/nnue2.bin", "start": 873988, "end": 1747976}, {"filename": "/nnue3.bin", "start": 1747976, "end": 2621964}, {"filename": "/nnue4.bin", "start": 2621964, "end": 3454736}, {"filename": "/nnue5.bin", "start": 3454736, "end": 4287508}], "remote_package_size": 4287508});
 
   })();
 
-// end include: /tmp/tmp_y0obwg6.js
-// include: /tmp/tmpszxsa3ly.js
+// end include: /tmp/tmp9l7xooed.js
+// include: /tmp/tmpbis3mjxi.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if ((typeof ENVIRONMENT_IS_WASM_WORKER != 'undefined' && ENVIRONMENT_IS_WASM_WORKER) || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD) || (typeof ENVIRONMENT_IS_AUDIO_WORKLET != 'undefined' && ENVIRONMENT_IS_AUDIO_WORKLET)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: /tmp/tmpszxsa3ly.js
-// include: /tmp/tmpivtg86qb.js
+  // end include: /tmp/tmpbis3mjxi.js
+// include: /tmp/tmp9e1r3gys.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: /tmp/tmpivtg86qb.js
+  // end include: /tmp/tmp9e1r3gys.js
 
 
 var programArgs = [];
@@ -4693,7 +4693,6 @@ function checkIncomingModuleAPI() {
 // Imports from the Wasm binary.
 var _get_empty = Module['_get_empty'] = makeInvalidEarlyAccess('_get_empty');
 var _init_board_wasm = Module['_init_board_wasm'] = makeInvalidEarlyAccess('_init_board_wasm');
-var _set_difficulty_wasm = Module['_set_difficulty_wasm'] = makeInvalidEarlyAccess('_set_difficulty_wasm');
 var _get_board_ptr_wasm = Module['_get_board_ptr_wasm'] = makeInvalidEarlyAccess('_get_board_ptr_wasm');
 var _get_current_turn_wasm = Module['_get_current_turn_wasm'] = makeInvalidEarlyAccess('_get_current_turn_wasm');
 var _find_ai_move_wasm_depth = Module['_find_ai_move_wasm_depth'] = makeInvalidEarlyAccess('_find_ai_move_wasm_depth');
@@ -4702,6 +4701,7 @@ var _promote_pawn_wasm = Module['_promote_pawn_wasm'] = makeInvalidEarlyAccess('
 var _get_pawn_promotion_pending_index_wasm = Module['_get_pawn_promotion_pending_index_wasm'] = makeInvalidEarlyAccess('_get_pawn_promotion_pending_index_wasm');
 var _get_game_state_wasm = Module['_get_game_state_wasm'] = makeInvalidEarlyAccess('_get_game_state_wasm');
 var _evaluate_board = Module['_evaluate_board'] = makeInvalidEarlyAccess('_evaluate_board');
+var _set_difficulty_wasm = Module['_set_difficulty_wasm'] = makeInvalidEarlyAccess('_set_difficulty_wasm');
 var _make_move_wasm = Module['_make_move_wasm'] = makeInvalidEarlyAccess('_make_move_wasm');
 var _reset_game = Module['_reset_game'] = makeInvalidEarlyAccess('_reset_game');
 var _fflush = makeInvalidEarlyAccess('_fflush');
@@ -4720,7 +4720,6 @@ var wasmMemory = makeInvalidEarlyAccess('wasmMemory');
 function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['get_empty'] != 'undefined', 'missing Wasm export: get_empty');
   assert(typeof wasmExports['init_board_wasm'] != 'undefined', 'missing Wasm export: init_board_wasm');
-  assert(typeof wasmExports['set_difficulty_wasm'] != 'undefined', 'missing Wasm export: set_difficulty_wasm');
   assert(typeof wasmExports['get_board_ptr_wasm'] != 'undefined', 'missing Wasm export: get_board_ptr_wasm');
   assert(typeof wasmExports['get_current_turn_wasm'] != 'undefined', 'missing Wasm export: get_current_turn_wasm');
   assert(typeof wasmExports['find_ai_move_wasm_depth'] != 'undefined', 'missing Wasm export: find_ai_move_wasm_depth');
@@ -4729,6 +4728,7 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['get_pawn_promotion_pending_index_wasm'] != 'undefined', 'missing Wasm export: get_pawn_promotion_pending_index_wasm');
   assert(typeof wasmExports['get_game_state_wasm'] != 'undefined', 'missing Wasm export: get_game_state_wasm');
   assert(typeof wasmExports['evaluate_board'] != 'undefined', 'missing Wasm export: evaluate_board');
+  assert(typeof wasmExports['set_difficulty_wasm'] != 'undefined', 'missing Wasm export: set_difficulty_wasm');
   assert(typeof wasmExports['make_move_wasm'] != 'undefined', 'missing Wasm export: make_move_wasm');
   assert(typeof wasmExports['reset_game'] != 'undefined', 'missing Wasm export: reset_game');
   assert(typeof wasmExports['fflush'] != 'undefined', 'missing Wasm export: fflush');
@@ -4744,7 +4744,6 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['__indirect_function_table'] != 'undefined', 'missing Wasm export: __indirect_function_table');
   _get_empty = Module['_get_empty'] = createExportWrapper('get_empty', wasmExports['get_empty'], 0);
   _init_board_wasm = Module['_init_board_wasm'] = createExportWrapper('init_board_wasm', wasmExports['init_board_wasm'], 0);
-  _set_difficulty_wasm = Module['_set_difficulty_wasm'] = createExportWrapper('set_difficulty_wasm', wasmExports['set_difficulty_wasm'], 1);
   _get_board_ptr_wasm = Module['_get_board_ptr_wasm'] = createExportWrapper('get_board_ptr_wasm', wasmExports['get_board_ptr_wasm'], 0);
   _get_current_turn_wasm = Module['_get_current_turn_wasm'] = createExportWrapper('get_current_turn_wasm', wasmExports['get_current_turn_wasm'], 0);
   _find_ai_move_wasm_depth = Module['_find_ai_move_wasm_depth'] = createExportWrapper('find_ai_move_wasm_depth', wasmExports['find_ai_move_wasm_depth'], 2);
@@ -4753,6 +4752,7 @@ function assignWasmExports(wasmExports) {
   _get_pawn_promotion_pending_index_wasm = Module['_get_pawn_promotion_pending_index_wasm'] = createExportWrapper('get_pawn_promotion_pending_index_wasm', wasmExports['get_pawn_promotion_pending_index_wasm'], 0);
   _get_game_state_wasm = Module['_get_game_state_wasm'] = createExportWrapper('get_game_state_wasm', wasmExports['get_game_state_wasm'], 0);
   _evaluate_board = Module['_evaluate_board'] = createExportWrapper('evaluate_board', wasmExports['evaluate_board'], 0);
+  _set_difficulty_wasm = Module['_set_difficulty_wasm'] = createExportWrapper('set_difficulty_wasm', wasmExports['set_difficulty_wasm'], 1);
   _make_move_wasm = Module['_make_move_wasm'] = createExportWrapper('make_move_wasm', wasmExports['make_move_wasm'], 2);
   _reset_game = Module['_reset_game'] = createExportWrapper('reset_game', wasmExports['reset_game'], 1);
   _fflush = createExportWrapper('fflush', wasmExports['fflush'], 1);

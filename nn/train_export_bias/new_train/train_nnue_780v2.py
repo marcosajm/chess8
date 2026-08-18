@@ -41,13 +41,13 @@ class Config:
     
     # Data generation - FIXED for Stockfish compatibility
     DEPTH = 24
-    NUM_GAMES = 50  # Start with fewer games for testing
-    MAX_MOVES = 12
+    NUM_GAMES = 220 # Start with fewer games for testing
+    MAX_MOVES = 280
     STOCKFISH_PATH = "/usr/games/stockfish"
     
     # Stockfish skill levels (0-20 for newer versions)
     # 0 = weakest, 20 = strongest
-    STOCKFISH_SKILL_LEVELS = [0, 5, 10, 15, 20]  # Stockfish opponent levels
+    STOCKFISH_SKILL_LEVELS = [20]  # Stockfish opponent levels
     
     # Bot play style configuration (OUR bot, not Stockfish)
     # 'worst' = play the worst possible moves (minimum evaluation)
@@ -56,7 +56,7 @@ class Config:
     OUR_BOT_PLAY_STYLE = 'worst'  # Options: 'worst', 'average', 'best'
     
     # Output files
-    DATA_FILE = "training_data_prod.bin"
+    DATA_FILE = "training_data"+str(DEPTH)+"_"+str(NUM_GAMES)+"_prod.bin"
     MODEL_FILE = "nnue_model_prod.pt"
     WEIGHTS_FILE = "nnue_weights_prod.bin"
     WASM_WEIGHTS_FILE = "nnue_weights_wasm.bin"

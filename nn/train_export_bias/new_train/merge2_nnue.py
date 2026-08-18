@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Ferramenta para Combinar Múltiplos Arquivos NNUE .bin com Remoção de Duplicatas
-Uso: python3 merge_nnue_data.py
+Uso: python3 merge2_nnue.py
 """
 
 import struct
@@ -271,51 +271,97 @@ def analyze_duplicates(filename: str):
     """
     Analisa quantas duplicatas existem em um arquivo
     """
+    if not os.path.exists(filename):
+        print(f"❌ Arquivo não encontrado: {filename}")
+        return
+    
     print(f"\n🔍 Analisando duplicatas em: {filename}")
     
-    with open(filename, 'rb') as f:
-        magic, total = struct.unpack('4sI', f.read(8))
-        if magic != b'NNUE':
-            print("❌ Arquivo inválido!")
-            return
-    
-    pos_size = 780 * 4 + 12
-    seen = set()
-    duplicates = 0
-    
-    print(f"  Total de posições: {total:,}")
-    print(f"  Analisando...")
-    
-    f.seek(8)
-    for i in range(total):
-        pos_data = f.read(pos_size)
-        pos_hash = hashlib.md5(pos_data).hexdigest()
-        
-        if pos_hash in seen:
-            duplicates += 1
-        else:
-            seen.add(pos_hash)
-        
-        if (i + 1) % 100000 == 0:
-            print(f"    Progresso: {i + 1:,}/{total:,}")
-    
-    print(f"\n  📊 Resultado:")
-    print(f"    Posições únicas: {total - duplicates:,}")
-    print(f"    Duplicatas: {duplicates:,}")
-    print(f"    Redução: {(duplicates/total)*100:.1f}%")
+    try:
+        with open(filename, 'rb') as f:
+            # Lê cabeçalho
+            magic, total = struct.unpack('4sI', f.read(8))
+            
+            if magic != b'NNUE':
+                print("❌ Arquivo inválido! Magic number incorreto.")
+                return
+            
+            pos_size = 780 * 4 + 12
+            seen = set()
+            duplicates = 0
+            
+            print(f"  Total de posições: {total:,}")
+            print(f"  Analisando...")
+            
+            # Lê posições
+            for i in range(total):
+                pos_data = f.read(pos_size)
+                if len(pos_data) < pos_size:
+                    print(f"  ⚠️  Arquivo incompleto na posição {i}")
+                    break
+                    
+                pos_hash = hashlib.md5(pos_data).hexdigest()
+                
+                if pos_hash in seen:
+                    duplicates += 1
+                else:
+                    seen.add(pos_hash)
+                
+                if (i + 1) % 100000 == 0:
+                    print(f"    Progresso: {i + 1:,}/{total:,}")
+            
+            print(f"\n  📊 Resultado:")
+            print(f"    Posições únicas: {total - duplicates:,}")
+            print(f"    Duplicatas: {duplicates:,}")
+            print(f"    Redução: {(duplicates/total)*100:.1f}%")
+            
+            # Mostra primeiras 5 duplicatas se houver
+            if duplicates > 0:
+                print(f"\n  🔍 Primeiras 5 posições duplicadas (hash):")
+                # Re-analisa para mostrar exemplos
+                f.seek(8)
+                seen_hashes = {}
+                duplicate_examples = []
+                
+                for i in range(total):
+                    pos_data = f.read(pos_size)
+                    if len(pos_data) < pos_size:
+                        break
+                    pos_hash = hashlib.md5(pos_data).hexdigest()
+                    
+                    if pos_hash in seen_hashes:
+                        if len(duplicate_examples) < 5:
+                            duplicate_examples.append((i, pos_hash, seen_hashes[pos_hash]))
+                    else:
+                        seen_hashes[pos_hash] = i
+                
+                for i, (idx, hash_val, first_occurrence) in enumerate(duplicate_examples, 1):
+                    print(f"    {i}. Posição {idx} duplicada (primeira ocorrência: {first_occurrence})")
+                    print(f"       Hash: {hash_val}")
+                    
+    except Exception as e:
+        print(f"  ❌ Erro durante análise: {e}")
 
 def split_dataset(input_file: str, num_parts: int = 5):
     """
     Divide um arquivo grande em partes menores (útil para processamento paralelo)
     """
+    if not os.path.exists(input_file):
+        print(f"❌ Arquivo não encontrado: {input_file}")
+        return
+    
     print(f"\n🔪 Dividindo {input_file} em {num_parts} partes...")
     
     # Lê total de posições
-    with open(input_file, 'rb') as f:
-        magic, total = struct.unpack('4sI', f.read(8))
-        if magic != b'NNUE':
-            print("❌ Arquivo inválido!")
-            return
+    try:
+        with open(input_file, 'rb') as f:
+            magic, total = struct.unpack('4sI', f.read(8))
+            if magic != b'NNUE':
+                print("❌ Arquivo inválido!")
+                return
+    except Exception as e:
+        print(f"❌ Erro ao ler arquivo: {e}")
+        return
     
     positions_per_part = total // num_parts
     extra = total % num_parts
@@ -355,43 +401,53 @@ def compare_files(file1: str, file2: str):
     """
     Compara dois arquivos NNUE para verificar se são consistentes
     """
+    if not os.path.exists(file1):
+        print(f"❌ Arquivo não encontrado: {file1}")
+        return
+    if not os.path.exists(file2):
+        print(f"❌ Arquivo não encontrado: {file2}")
+        return
+    
     print(f"\n🔍 Comparando {file1} e {file2}")
     
-    with open(file1, 'rb') as f1, open(file2, 'rb') as f2:
-        magic1, count1 = struct.unpack('4sI', f1.read(8))
-        magic2, count2 = struct.unpack('4sI', f2.read(8))
-        
-        if magic1 != b'NNUE' or magic2 != b'NNUE':
-            print("❌ Magic number inválido")
-            return
-        
-        if count1 != count2:
-            print(f"⚠️  Números de posições diferentes: {count1} vs {count2}")
-        
-        pos_size = 780 * 4 + 12
-        
-        # Compara primeira posição
-        f1.seek(8)
-        f2.seek(8)
-        
-        data1 = f1.read(pos_size)
-        data2 = f2.read(pos_size)
-        
-        if data1 == data2:
-            print("✅ Primeira posição IDÊNTICA")
-        else:
-            print("⚠️  Primeira posição DIFERENTE")
+    try:
+        with open(file1, 'rb') as f1, open(file2, 'rb') as f2:
+            magic1, count1 = struct.unpack('4sI', f1.read(8))
+            magic2, count2 = struct.unpack('4sI', f2.read(8))
             
-            # Mostra diferenças
-            diff_positions = []
-            for i, (b1, b2) in enumerate(zip(data1, data2)):
-                if b1 != b2:
-                    diff_positions.append(i)
-                    if len(diff_positions) > 5:
-                        break
+            if magic1 != b'NNUE' or magic2 != b'NNUE':
+                print("❌ Magic number inválido")
+                return
             
-            print(f"  Diferenças em: {diff_positions}")
-            print(f"  Primeira diferença no offset {diff_positions[0] if diff_positions else 'N/A'}")
+            if count1 != count2:
+                print(f"⚠️  Números de posições diferentes: {count1} vs {count2}")
+            
+            pos_size = 780 * 4 + 12
+            
+            # Compara primeira posição
+            f1.seek(8)
+            f2.seek(8)
+            
+            data1 = f1.read(pos_size)
+            data2 = f2.read(pos_size)
+            
+            if data1 == data2:
+                print("✅ Primeira posição IDÊNTICA")
+            else:
+                print("⚠️  Primeira posição DIFERENTE")
+                
+                # Mostra diferenças
+                diff_positions = []
+                for i, (b1, b2) in enumerate(zip(data1, data2)):
+                    if b1 != b2:
+                        diff_positions.append(i)
+                        if len(diff_positions) > 5:
+                            break
+                
+                print(f"  Diferenças em: {diff_positions}")
+                print(f"  Primeira diferença no offset {diff_positions[0] if diff_positions else 'N/A'}")
+    except Exception as e:
+        print(f"❌ Erro ao comparar arquivos: {e}")
 
 # ============== FUNÇÃO PRINCIPAL ==============
 
@@ -407,25 +463,31 @@ def main():
     if not pattern:
         pattern = MergeConfig.INPUT_PATTERN
     
-    files = sorted(glob.glob(pattern))
+    # Filtra arquivos existentes e não inclui o arquivo de saída
+    all_files = sorted(glob.glob(pattern))
+    # Remove arquivos que já são merged
+    all_files = [f for f in all_files if "merged" not in f.lower()]
     
-    if not files:
+    if not all_files:
         print(f"❌ Nenhum arquivo encontrado com padrão: {pattern}")
         
         # Opção manual
         manual = input("\nDeseja especificar arquivos manualmente? (s/N): ")
         if manual.lower() == 's':
             files_input = input("Arquivos (separados por espaço): ").strip()
-            files = files_input.split()
+            all_files = files_input.split()
     
-    if not files:
+    if not all_files:
         print("❌ Nenhum arquivo especificado!")
         return
     
     print(f"\n📂 Arquivos encontrados:")
-    for i, f in enumerate(files):
-        size = os.path.getsize(f) / 1024 / 1024
-        print(f"  {i+1:2d}. {f:40s} ({size:.2f} MB)")
+    for i, f in enumerate(all_files):
+        try:
+            size = os.path.getsize(f) / 1024 / 1024
+            print(f"  {i+1:2d}. {f:40s} ({size:.2f} MB)")
+        except:
+            print(f"  {i+1:2d}. {f:40s} (acesso negado)")
     
     output = input(f"\n📁 Arquivo de saída [{MergeConfig.OUTPUT_FILE}]: ").strip()
     if not output:
@@ -433,7 +495,7 @@ def main():
     
     # Opções
     print(f"\n⚙️  Opções:")
-    print(f"  1. Mesclar todos os arquivos com deduplicação ({len(files)} arquivos)")
+    print(f"  1. Mesclar todos os arquivos com deduplicação ({len(all_files)} arquivos)")
     print(f"  2. Mesclar sem deduplicação")
     print(f"  3. Selecionar arquivos específicos")
     print(f"  4. Analisar duplicatas em um arquivo")
@@ -445,12 +507,16 @@ def main():
         # Mesclar sem deduplicação
         print("\n🔗 Mesclando sem deduplicação...")
         success = merge_files(
-            files=files,
+            files=all_files,
             output_file=output,
             verify=MergeConfig.VERIFY_INTEGRITY,
             backup=MergeConfig.CREATE_BACKUP,
             remove_duplicates=False
         )
+        if success:
+            print("\n" + "="*80)
+            print("✅ PROCESSO CONCLUÍDO COM SUCESSO!")
+            print("="*80)
         return
     
     elif option == '3':
@@ -461,22 +527,35 @@ def main():
         for idx_str in indices.split(','):
             try:
                 idx = int(idx_str.strip()) - 1
-                if 0 <= idx < len(files):
-                    selected.append(files[idx])
+                if 0 <= idx < len(all_files):
+                    selected.append(all_files[idx])
             except:
                 pass
         
         if selected:
-            files = selected
-            print(f"\n✅ Selecionados {len(files)} arquivos")
+            all_files = selected
+            print(f"\n✅ Selecionados {len(all_files)} arquivos")
         else:
             print("❌ Nenhum arquivo selecionado!")
             return
     
     elif option == '4':
-        file_to_analyze = input("\nArquivo para analisar: ").strip()
-        if not file_to_analyze:
-            file_to_analyze = files[0]
+        print("\n📂 Arquivos disponíveis para análise:")
+        for i, f in enumerate(all_files):
+            print(f"  {i+1:2d}. {f}")
+        
+        file_choice = input("\nNúmero do arquivo ou caminho completo: ").strip()
+        
+        # Tenta interpretar como número
+        try:
+            idx = int(file_choice) - 1
+            if 0 <= idx < len(all_files):
+                file_to_analyze = all_files[idx]
+            else:
+                file_to_analyze = file_choice
+        except:
+            file_to_analyze = file_choice
+        
         analyze_duplicates(file_to_analyze)
         return
     
@@ -494,8 +573,8 @@ def main():
     
     # Confirmação
     print(f"\n📊 Resumo:")
-    print(f"  Arquivos: {len(files)}")
-    total_size = sum(os.path.getsize(f) for f in files) / 1024 / 1024
+    print(f"  Arquivos: {len(all_files)}")
+    total_size = sum(os.path.getsize(f) for f in all_files) / 1024 / 1024
     print(f"  Tamanho total: {total_size:.2f} MB")
     print(f"  Saída: {output}")
     print(f"  Deduplicação: {'Sim' if MergeConfig.REMOVE_DUPLICATES else 'Não'}")
@@ -508,7 +587,7 @@ def main():
     
     # Executa merge
     success = merge_files(
-        files=files,
+        files=all_files,
         output_file=output,
         verify=MergeConfig.VERIFY_INTEGRITY,
         backup=MergeConfig.CREATE_BACKUP,
@@ -538,8 +617,11 @@ def main():
             print(f"  Válido: {'Sim' if valid else 'Não'}")
         
         elif option == '2':
-            parts = int(input("Número de partes: "))
-            split_dataset(output, parts)
+            try:
+                parts = int(input("Número de partes: "))
+                split_dataset(output, parts)
+            except ValueError:
+                print("❌ Número inválido!")
         
         elif option == '3':
             analyze_duplicates(output)
@@ -554,6 +636,8 @@ def quick_merge():
     output = "training_data_merged_prod.bin"
     
     files = sorted(glob.glob(pattern))
+    # Remove arquivos merged existentes
+    files = [f for f in files if "merged" not in f.lower()]
     
     if not files:
         print(f"❌ Nenhum arquivo encontrado com padrão: {pattern}")

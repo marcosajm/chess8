@@ -176,10 +176,6 @@ float nnue_forward_vec(const NNUEWeights *nn, const float *x) {
         out += nn->w4[i] * h3[i];
     }
 
-    // Clamp output for stability (NEW)
-    if (out > 1.0f) out = 1.0f;
-    if (out < -1.0f) out = -1.0f;
-
     return out;
 }
 
