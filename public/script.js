@@ -41,6 +41,96 @@
   const moveStack = [];
   let selected = null;
   let flipped = false;
+  let openingBookMovesPlayed = 0;
+  let openingRandomState = 0;
+  let selectedOpening = null;
+  let previousOpeningIndex = -1;
+
+  const openingBook = [
+    { moves: ['e2e4', 'e7e5', 'g1f3', 'b8c6', 'f1b5'], weight: 30 }, // Ruy Lopez
+    { moves: ['e2e4', 'e7e5', 'g1f3', 'b8c6', 'f1c4'], weight: 25 }, // Italian Game
+    { moves: ['e2e4', 'e7e5', 'g1f3', 'd7d5', 'e4d5'], weight: 15 }, // Scotch Game
+    { moves: ['e2e4', 'e7e5', 'g1f3', 'g8f6', 'f3e5'], weight: 10 }, // Petrov Defense
+    { moves: ['e2e4', 'e7e5', 'g1f3', 'd7d6', 'd2d4'], weight: 10 }, // Philidor Defense
+    { moves: ['d2d4', 'd7d5', 'c2c4', 'e7e6', 'b1c3'], weight: 15 }, // Queen's Gambit
+    { moves: ['e2e4', 'c7c5', 'g1f3', 'd7d6', 'd2d4'], weight: 15 }  // Sicilian Defense
+  ];
+
+  function reseedOpeningRandom() {
+    const seedSource = new Uint32Array(1);
+    if (globalThis.crypto && globalThis.crypto.getRandomValues) {
+      globalThis.crypto.getRandomValues(seedSource);
+      openingRandomState = seedSource[0];
+    } else {
+      openingRandomState = (Date.now() ^ (performance.now() * 1000)) >>> 0;
+    }
+    if (openingRandomState === 0) openingRandomState = 0x6d2b79f5;
+  }
+
+  function openingRandom() {
+    // xorshift32: small, fast PRNG suitable for book move selection.
+    openingRandomState ^= openingRandomState << 13;
+    openingRandomState ^= openingRandomState >>> 17;
+    openingRandomState ^= openingRandomState << 5;
+    return (openingRandomState >>> 0) / 0x100000000;
+  }
+
+  function chooseOpeningLine(played) {
+    const candidates = openingBook
+      .map((line, index) => ({ line, index }))
+      .filter(({ line, index }) =>
+        played.length < line.moves.length &&
+          played.every((move, moveIndex) => move === line.moves[moveIndex]));
+      if (candidates.length > 1 && previousOpeningIndex >= 0) {
+        const alternatives = candidates.filter(({ index }) => index !== previousOpeningIndex);
+        if (alternatives.length) candidates.splice(0, candidates.length, ...alternatives);
+      }
+    if (!candidates.length) return null;
+    const totalWeight = candidates.reduce((sum, item) => sum + item.line.weight, 0);
+    let threshold = openingRandom() * totalWeight;
+
+    for (const candidate of candidates) {
+      threshold -= candidate.line.weight;
+      if (threshold < 0) {
+        previousOpeningIndex = candidate.index;
+        console.info(`[BOOK] Selected line ${candidate.index + 1}: ${candidate.line.moves.join(' ')}`);
+        return candidate.line.moves;
+      }
+    }
+
+    const fallback = candidates[candidates.length - 1];
+    previousOpeningIndex = fallback.index;
+    console.info(`[BOOK] Selected line ${fallback.index + 1}: ${fallback.line.moves.join(' ')}`);
+    return fallback.line.moves;
+  }
+
+  function moveToBookNotation(from, to) {
+    return `${squareLabel(from)}${squareLabel(to)}`;
+  }
+
+  function getOpeningBookMove() {
+    if (openingBookMovesPlayed >= 3) return null;
+
+    const played = moveStack.map(move => moveToBookNotation(move.from, move.to));
+    if (!selectedOpening) {
+      selectedOpening = chooseOpeningLine(played);
+    }
+    if (!selectedOpening) return null;
+
+    if (played.length >= selectedOpening.length ||
+        !played.every((move, index) => move === selectedOpening[index])) {
+      return null;
+    }
+
+    return selectedOpening[played.length];
+  }
+
+  function parseBookMove(notation) {
+    return {
+      from: frToIdx(notation.charCodeAt(0) - 97, Number(notation[1]) - 1),
+      to: frToIdx(notation.charCodeAt(2) - 97, Number(notation[3]) - 1)
+    };
+  }
 
   // White piece codes: (p+1) -> (0+1=1, 1+1=2, 2+1=3, 3+1=4, 4+1=5, 5+1=6)
   // Order: P=1, N=2, B=3, R=4, Q=5, K=6
@@ -246,7 +336,7 @@
       drawBoard(); return;
     }
 
-    moveStack.push({ from, to });
+    moveStack.push({ from, to, isBook: false });
 
      if (willBePawnPromotion) {
       const moverSide = (moverPieceBefore >=1 && moverPieceBefore <=6) ? 0 : 1;
@@ -274,6 +364,20 @@
     const turn = get_turn_wasm();
     const aiSide = (aiColor()==='white'?0:1);
     if (turn !== aiSide) return;
+
+    const bookNotation = getOpeningBookMove();
+    if (bookNotation) {
+      const bookMove = parseBookMove(bookNotation);
+      const bookResult = make_move_wasm(bookMove.from, bookMove.to);
+      if (bookResult !== 0) {
+        openingBookMovesPlayed++;
+        moveStack.push({ ...bookMove, isBook: true });
+        console.info(`[BOOK] Move ${openingBookMovesPlayed}/3: ${bookNotation}`);
+        drawBoard(bookMove);
+        checkGameOver();
+        return;
+      }
+    }
 
     const requestedDepth = Number(depthSel.value) || 1;
     const depth = Math.max(1, Math.trunc(requestedDepth));
@@ -303,7 +407,7 @@
       }
     }
 
-    moveStack.push({ from, to });
+    moveStack.push({ from, to, isBook: false });
     drawBoard({ from, to });
     checkGameOver();
   }
@@ -312,6 +416,9 @@
   newBtn.addEventListener('click', async () => {
     init_board_wasm();
     moveStack.length = 0;
+    openingBookMovesPlayed = 0;
+    selectedOpening = null;
+    reseedOpeningRandom();
     selected = null;
     drawBoard();
     await maybeEngineMove();
@@ -332,6 +439,8 @@
       }
     }
     moveStack.length = history.length;
+    openingBookMovesPlayed = history.filter(move => move.isBook).length;
+    selectedOpening = null;
     drawBoard(history[history.length-1] || null);
   });
 
@@ -369,6 +478,9 @@
     gameOverModal.classList.add('hidden');
     init_board_wasm();
     moveStack.length = 0;
+    openingBookMovesPlayed = 0;
+    selectedOpening = null;
+    reseedOpeningRandom();
     selected = null;
     drawBoard();
     await maybeEngineMove();
@@ -376,6 +488,9 @@
 
   // Start
   init_board_wasm();
+  openingBookMovesPlayed = 0;
+  selectedOpening = null;
+  reseedOpeningRandom();
   drawBoard();
   await maybeEngineMove();
 
