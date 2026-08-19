@@ -7,7 +7,7 @@ import chess
 import numpy as np
 import torch
 import struct
-from train_nnue import Config, NNUE, featurize_board
+from nn.train_export_bias.old.train_nnue import Config, NNUE, featurize_board
 
 def test_with_position(fen: str):
     """Test model evaluation on a specific position"""

@@ -32,7 +32,7 @@ class Config:
     # Training parameters
     BATCH_SIZE = 2048
     LEARNING_RATE = 0.001
-    EPOCHS = 64
+    EPOCHS = 200 #96
     VALIDATION_SPLIT = 0.1
     WEIGHT_DECAY = 1e-4
     GRADIENT_CLIP = 1.0
@@ -41,8 +41,8 @@ class Config:
     
     # Data generation - FIXED for Stockfish compatibility
     DEPTH = 24
-    NUM_GAMES = 220 # Start with fewer games for testing
-    MAX_MOVES = 280
+    NUM_GAMES = 10 # Start with fewer games for testing
+    MAX_MOVES = 32
     STOCKFISH_PATH = "/usr/games/stockfish"
     
     # Stockfish skill levels (0-20 for newer versions)

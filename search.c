@@ -34,7 +34,7 @@ int evaluate_position(const Position *pos) {
 int minimax(Position *pos, int depth, int alpha, int beta, int maximizingPlayer) {
     if (depth <= 0) {
         int eval = evaluate_position(pos);
-        printf("  [MINIMAX d=%d] leaf eval=%d\n", depth, eval);
+       // printf("  [MINIMAX d=%d] leaf eval=%d\n", depth, eval);
         return eval;
     }
 
