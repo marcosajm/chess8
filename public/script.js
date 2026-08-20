@@ -109,7 +109,7 @@
   }
 
   function getOpeningBookMove() {
-    if (openingBookMovesPlayed >= 3) return null;
+    if (openingBookMovesPlayed >= 2) return null;
 
     const played = moveStack.map(move => moveToBookNotation(move.from, move.to));
     if (!selectedOpening) {

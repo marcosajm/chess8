@@ -41,8 +41,8 @@ class Config:
     
     # Data generation - FIXED for Stockfish compatibility
     DEPTH = 24
-    NUM_GAMES = 3 # Start with fewer games for testing
-    MAX_MOVES = 32
+    NUM_GAMES = 6 # Start with fewer games for testing
+    MAX_MOVES = 212
     STOCKFISH_PATH = "/usr/games/stockfish"
     
     # Stockfish skill levels (0-20 for newer versions)
