@@ -2,6 +2,7 @@
 """
 NNUE Data Generator - Separated from Training
 Generates training data with configurable bot play styles
+Now with alternating starting sides
 """
 
 import chess
@@ -23,7 +24,7 @@ class Config:
     
     # Data generation
     DEPTH = 24
-    NUM_GAMES = 20
+    NUM_GAMES = 4
     MAX_MOVES = 212
     STOCKFISH_PATH = "/usr/games/stockfish"
     
@@ -199,7 +200,7 @@ class OurBotMoveSelector:
         self.move_counter = 0  # Track moves for alternating pattern
     
     def select_move(self, board: chess.Board, engine: chess.engine.SimpleEngine, 
-                    depth: int, is_opening: bool = False) -> Tuple[chess.Move, float]:
+                    depth: int, is_opening: bool = False, is_our_turn: bool = True) -> Tuple[chess.Move, float]:
         """
         Select a move based on the specified style.
         
@@ -208,6 +209,7 @@ class OurBotMoveSelector:
             engine: Stockfish engine instance (used for evaluation)
             depth: Analysis depth
             is_opening: If True, forces random move (100% random)
+            is_our_turn: True if it's OUR bot's turn (used for logging)
             
         Returns:
             Tuple of (selected_move, evaluation_score)
@@ -220,17 +222,19 @@ class OurBotMoveSelector:
         if len(legal_moves) == 1:
             return legal_moves[0], 0.0
         
-        # ALWAYS PLAY RANDOM ON OPENING (first move)
+        # ALWAYS PLAY RANDOM ON OPENING (first move of the game)
         if is_opening:
             selected = random.choice(legal_moves)
-            print(f"  🎲 OUR Bot playing RANDOM opening move")
+            side = "White" if is_our_turn else "Black"
+            print(f"  🎲 OUR Bot ({side}) playing RANDOM opening move")
             return selected, 0.0
         
         # For non-opening moves, use the configured style
         # Small chance of random move for variety (5%)
         if random.random() < 0.05:
             selected = random.choice(legal_moves)
-            print(f"  🎲 OUR Bot playing RANDOM move (variety)")
+            side = "White" if is_our_turn else "Black"
+            print(f"  🎲 OUR Bot ({side}) playing RANDOM move (variety)")
             return selected, 0.0
         
         # Analyze all legal moves using Stockfish
@@ -262,6 +266,8 @@ class OurBotMoveSelector:
         # Sort by score
         move_scores.sort(key=lambda x: x[1])
         
+        side = "White" if is_our_turn else "Black"
+        
         # Handle alternating pattern
         if self.style == 'alternating':
             # Pattern: 1 best, 2 worst, 1 best, 2 worst, ...
@@ -270,21 +276,21 @@ class OurBotMoveSelector:
             
             # Determine if this should be a best or worst move
             # Pattern: move 1 = best, moves 2-3 = worst, move 4 = best, moves 5-6 = worst, ...
-            if self.move_counter % 2 == 5: #3 == 1
+            if self.move_counter % 2 == 5:
                 # Best move (every 3rd move starting from 1)
                 selected = move_scores[-1]
-                print(f"  🎯 OUR Bot playing BEST move (alternating pattern #{self.move_counter})")
+                print(f"  🎯 OUR Bot ({side}) playing BEST move (alternating pattern #{self.move_counter})")
                 return selected
             else:
                 # Worst move (moves 2-3, 5-6, 8-9, ...)
                 selected = move_scores[0]
-                print(f"  🎯 OUR Bot playing WORST move (alternating pattern #{self.move_counter})")
+                print(f"  🎯 OUR Bot ({side}) playing WORST move (alternating pattern #{self.move_counter})")
                 return selected
         
         elif self.style == 'worst':
             # Select the move with the lowest score (worst move)
             selected = move_scores[0]
-            print(f"  🎯 OUR Bot playing WORST move (score: {selected[1]:.2f})")
+            print(f"  🎯 OUR Bot ({side}) playing WORST move (score: {selected[1]:.2f})")
             return selected
         
         elif self.style == 'average':
@@ -302,14 +308,14 @@ class OurBotMoveSelector:
                 random_idx = random.randint(lower_bound, upper_bound - 1)
                 selected = move_scores[random_idx]
             
-            print(f"  🎯 OUR Bot playing AVERAGE move (score: {selected[1]:.2f}, "
+            print(f"  🎯 OUR Bot ({side}) playing AVERAGE move (score: {selected[1]:.2f}, "
                   f"range: {move_scores[0][1]:.2f} to {move_scores[-1][1]:.2f})")
             return selected
         
         else:  # 'best' or default
             # Select the move with the highest score
             selected = move_scores[-1]
-            print(f"  🎯 OUR Bot playing BEST move (score: {selected[1]:.2f})")
+            print(f"  🎯 OUR Bot ({side}) playing BEST move (score: {selected[1]:.2f})")
             return selected
 
 # ============== Data Generator ==============
@@ -326,6 +332,7 @@ class DataGenerator:
         self.stockfish_path = stockfish_path
         self.our_bot_style = Config.OUR_BOT_PLAY_STYLE
         self.bot_selector = OurBotMoveSelector(self.our_bot_style)
+        self.games_played = 0  # Track total games for alternating starts
     
     def start_stockfish_engine(self, skill_level: Optional[int] = None):
         """Start Stockfish engine with specific skill level"""
@@ -367,6 +374,7 @@ class DataGenerator:
         print(f"  Games: {num_games}")
         print(f"  Max moves per game: {Config.MAX_MOVES}")
         print(f"  Opening moves: 100% RANDOM")
+        print(f"  Starting sides: ALTERNATING (OUR bot starts as White in even games, Black in odd games)")
         print(f"{'='*80}")
         
         all_positions = []
@@ -377,6 +385,7 @@ class DataGenerator:
         games_per_level = max(1, num_games // len(stockfish_levels))
         
         start_time = time.time()
+        self.games_played = 0
         
         for level_idx, skill_level in enumerate(stockfish_levels):
             print(f"\n  🎯 Playing against Stockfish at skill level: {skill_level}")
@@ -387,8 +396,13 @@ class DataGenerator:
             
             for game_idx in range(games_per_level):
                 opening = openings[(game_idx + level_idx * 100) % len(openings)]
-                positions = self.play_game(opening, skill_level)
+                
+                # Determine who starts: even games = OUR bot (White), odd games = Stockfish (White)
+                our_bot_starts = (self.games_played % 2 == 0)
+                
+                positions = self.play_game(opening, skill_level, our_bot_starts)
                 all_positions.extend(positions)
+                self.games_played += 1
                 
                 if (game_idx + 1) % 10 == 0:
                     elapsed = time.time() - start_time
@@ -402,12 +416,30 @@ class DataGenerator:
         self._save_data(all_positions)
         return all_positions
     
-    def play_game(self, opening_fen: Optional[str] = None, stockfish_level: int = 0) -> List[TrainingPosition]:
+    def play_game(self, opening_fen: Optional[str] = None, stockfish_level: int = 0, our_bot_starts: bool = True) -> List[TrainingPosition]:
+        """
+        Play a single game.
+        
+        Args:
+            opening_fen: Opening position FEN string
+            stockfish_level: Stockfish skill level
+            our_bot_starts: True if OUR bot starts as White, False if Stockfish starts as White
+        """
         board = chess.Board(opening_fen) if opening_fen else chess.Board()
         positions = []
         move_count = 0
         depth_limit = chess.engine.Limit(depth=Config.DEPTH)
         visited_positions = set()
+        
+        # Determine who plays first
+        # If our_bot_starts = True: OUR bot is White, Stockfish is Black
+        # If our_bot_starts = False: Stockfish is White, OUR bot is Black
+        is_our_turn = our_bot_starts
+        
+        # Track if this is the first move of the game (opening)
+        is_opening_move = True
+        
+        print(f"\n  🎮 Game #{self.games_played + 1}: {'OUR Bot' if our_bot_starts else 'Stockfish'} starts as White")
         
         while not board.is_game_over() and move_count < Config.MAX_MOVES:
             # Analyze current position using Stockfish
@@ -435,18 +467,15 @@ class DataGenerator:
                 tactical_score=tactical_score
             ))
             
-            # Determine whose turn it is
-            # Our bot plays on even moves (starts as white), Stockfish on odd moves
-            is_our_turn = (move_count % 2 == 0)
-            
             if is_our_turn:
                 # OUR BOT's turn
-                if move_count == 0:
-                    # First move - 100% random (opening)
+                if is_opening_move:
+                    # First move of the game - 100% random
                     legal_moves = list(board.legal_moves)
                     if legal_moves:
                         move = random.choice(legal_moves)
-                        print(f"  🎲 OUR Bot playing RANDOM opening move: {board.san(move)}")
+                        side = "White" if our_bot_starts else "Black"
+                        print(f"  🎲 OUR Bot ({side}) playing RANDOM opening move: {board.san(move)}")
                     else:
                         break
                 else:
@@ -456,7 +485,8 @@ class DataGenerator:
                             board, 
                             self.engine, 
                             depth=Config.DEPTH - 4,
-                            is_opening=False
+                            is_opening=False,
+                            is_our_turn=is_our_turn
                         )
                         if move is None:
                             # Fallback to random move if no move selected
@@ -478,6 +508,8 @@ class DataGenerator:
                 try:
                     result = self.engine.play(board, limit=chess.engine.Limit(depth=Config.DEPTH-2))
                     move = result.move
+                    side = "White" if not our_bot_starts else "Black"
+                    print(f"  ♟️  Stockfish ({side}) plays: {board.san(move)}")
                 except Exception as e:
                     print(f"  Warning: Stockfish move error: {e}")
                     # Fallback to random move
@@ -489,6 +521,8 @@ class DataGenerator:
             
             board.push(move)
             move_count += 1
+            is_our_turn = not is_our_turn
+            is_opening_move = False
             
             pos_key = board.fen()
             if pos_key in visited_positions:
@@ -498,13 +532,35 @@ class DataGenerator:
         # Determine result
         result = 0.0
         if board.is_checkmate():
-            # White (OUR bot) wins on odd moves, Black (Stockfish) wins on even moves
-            result = 1.0 if move_count % 2 == 1 else 0.0
+            # Check who won based on who started
+            if our_bot_starts:
+                # OUR bot is White, Stockfish is Black
+                # White wins on even moves (OUR bot's turn just moved), Black wins on odd moves
+                if move_count % 2 == 1:  # OUR bot (White) made the last move
+                    result = 1.0  # OUR bot wins
+                else:
+                    result = 0.0  # Stockfish wins
+            else:
+                # Stockfish is White, OUR bot is Black
+                # White wins on even moves (Stockfish's turn just moved), Black wins on odd moves
+                if move_count % 2 == 1:  # OUR bot (Black) made the last move
+                    result = 1.0  # OUR bot wins
+                else:
+                    result = 0.0  # Stockfish wins
         elif board.is_stalemate() or board.is_insufficient_material():
             result = 0.5
         
+        # Store the result in all positions
         for pos in positions:
             pos.result = result
+        
+        # Print game result
+        if result == 1.0:
+            print(f"  ✅ OUR Bot wins!")
+        elif result == 0.0:
+            print(f"  ❌ Stockfish wins!")
+        else:
+            print(f"  🤝 Draw!")
         
         return positions
     
@@ -534,6 +590,8 @@ class DataGenerator:
         print(f"  Bot style used: {self.our_bot_style.upper()}")
         if self.our_bot_style == 'alternating':
             print(f"  Pattern: 1 BEST, 2 WORST (repeating)")
+        print(f"  Games played: {self.games_played}")
+        print(f"  Starting sides: ALTERNATING")
         print(f"{'='*80}")
 
 # ============== Main ==============
