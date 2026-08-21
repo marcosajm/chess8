@@ -90,7 +90,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: /tmp/tmpj5jghg14.js
+// include: /tmp/tmpghy84hnm.js
 
   if (!Module['expectedDataFileDownloads']) Module['expectedDataFileDownloads'] = 0;
   Module['expectedDataFileDownloads']++;
@@ -209,25 +209,25 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
     }
 
     }
-    loadPackage({"files": [{"filename": "/nnue.bin", "start": 0, "end": 873988}, {"filename": "/nnue2.bin", "start": 873988, "end": 1747976}, {"filename": "/nnue3.bin", "start": 1747976, "end": 2621964}, {"filename": "/nnue4.bin", "start": 2621964, "end": 3454736}, {"filename": "/nnue5.bin", "start": 3454736, "end": 4287508}], "remote_package_size": 4287508});
+    loadPackage({"files": [{"filename": "/nnue.bin", "start": 0, "end": 873988}, {"filename": "/nnue2.bin", "start": 873988, "end": 1747976}, {"filename": "/nnue3.bin", "start": 1747976, "end": 2621964}, {"filename": "/nnue4.bin", "start": 2621964, "end": 3495952}, {"filename": "/nnue5.bin", "start": 3495952, "end": 4369940}], "remote_package_size": 4369940});
 
   })();
 
-// end include: /tmp/tmpj5jghg14.js
-// include: /tmp/tmp51rhfewe.js
+// end include: /tmp/tmpghy84hnm.js
+// include: /tmp/tmp7xpghpc2.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if ((typeof ENVIRONMENT_IS_WASM_WORKER != 'undefined' && ENVIRONMENT_IS_WASM_WORKER) || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD) || (typeof ENVIRONMENT_IS_AUDIO_WORKLET != 'undefined' && ENVIRONMENT_IS_AUDIO_WORKLET)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: /tmp/tmp51rhfewe.js
-// include: /tmp/tmpci8xsvuu.js
+  // end include: /tmp/tmp7xpghpc2.js
+// include: /tmp/tmp0n3xujsx.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: /tmp/tmpci8xsvuu.js
+  // end include: /tmp/tmp0n3xujsx.js
 
 
 var programArgs = [];

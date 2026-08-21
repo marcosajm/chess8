@@ -24,7 +24,7 @@ class Config:
     
     # Data generation
     DEPTH = 24
-    NUM_GAMES = 6
+    NUM_GAMES = 4
     MAX_MOVES = 212
     STOCKFISH_PATH = "/usr/games/stockfish"
     
@@ -277,7 +277,7 @@ class OurBotMoveSelector:
 
             # Determine if this should be a best or worst move
             # Pattern: move 1 = best, moves 2-3 = worst, move 4 = best, moves 5-6 = worst, ...
-            if (self.move_counter % 3 == 1) or (self.move_counter % 2 == 0):
+            if (self.move_counter % 3 == 1) or (self.move_counter % 2 == 0) or (self.move_counter % 6 == 0):
                 # Best move (every 3rd move starting from 1)
                 selected = move_scores[-1]
                 print(f"  🎯 OUR Bot ({side}) playing BEST move (alternating pattern #{self.move_counter})")
