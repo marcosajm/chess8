@@ -24,7 +24,7 @@ class Config:
     
     # Data generation
     DEPTH = 24
-    NUM_GAMES = 4
+    NUM_GAMES = 24
     MAX_MOVES = 212
     STOCKFISH_PATH = "/usr/games/stockfish"
     
@@ -36,7 +36,7 @@ class Config:
     # 'average' = average moves
     # 'best' = always best moves
     # 'alternating' = 1 best move, then 2 worst moves (repeating)
-    OUR_BOT_PLAY_STYLE = 'alternating'  # Options: 'worst', 'average', 'best', 'alternating'
+    OUR_BOT_PLAY_STYLE = 'best'  # Options: 'worst', 'average', 'best', 'alternating'
     
     # Output file
     DATA_FILE = "training_data" + str(DEPTH) + str(NUM_GAMES)  + str(MAX_MOVES) +  str(ts) + "_prod.bin"
