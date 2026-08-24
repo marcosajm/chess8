@@ -23,7 +23,7 @@ class Config:
     
     # Data generation
     DEPTH = 24
-    NUM_GAMES = 20
+    NUM_GAMES = 80
     MAX_MOVES = 212
     STOCKFISH_PATH = "/usr/games/stockfish"
     
