@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 import argparse
 from collections import defaultdict
+from scipy import stats
 
 # Set style for better visualizations
 plt.style.use('seaborn-v0_8-darkgrid')
@@ -82,7 +83,7 @@ class NNUEVisualizer:
             print(f"❌ Error loading data: {e}")
             raise
     
-    def create_dashboard(self, output_dir='nnue_visualizations'):
+    def create_dashboard(self, output_dir='nnue_visualizations2'):
         """Create a comprehensive dashboard with multiple plots."""
         if not self.scores:
             print("❌ No data loaded!")

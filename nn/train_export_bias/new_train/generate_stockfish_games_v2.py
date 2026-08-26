@@ -24,7 +24,7 @@ class Config:
     
     # Data generation
     DEPTH = 24
-    NUM_GAMES = 3
+    NUM_GAMES = 5
     MAX_MOVES = 220
     STOCKFISH_PATH = "/usr/games/stockfish"
     
@@ -231,7 +231,7 @@ class OurBotMoveSelector:
         
         # For non-opening moves, use the configured style
         # Small chance of random move for variety (5%)
-        if random.random() < 0.05:
+        if random.random() < 0.25:
             selected = random.choice(legal_moves)
             side = "White" if is_our_turn else "Black"
             print(f"  🎲 OUR Bot ({side}) playing RANDOM move (variety)")
