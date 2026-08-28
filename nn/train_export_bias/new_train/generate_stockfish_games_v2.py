@@ -24,7 +24,7 @@ class Config:
     
     # Data generation
     DEPTH = 24
-    NUM_GAMES = 5
+    NUM_GAMES = 4
     MAX_MOVES = 220
     STOCKFISH_PATH = "/usr/games/stockfish"
     
@@ -433,11 +433,7 @@ class DataGenerator:
         visited_positions = set()
         
         # Determine who plays first
-        # If our_bot_starts = True: OUR bot is White, Stockfish is Black
-        # If our_bot_starts = False: Stockfish is White, OUR bot is Black
         is_our_turn = our_bot_starts
-        
-        # Track if this is the first move of the game (opening)
         is_opening_move = True
         
         print(f"\n  🎮 Game #{self.games_played + 1}: {'OUR Bot' if our_bot_starts else 'Stockfish'} starts as White")
@@ -471,7 +467,6 @@ class DataGenerator:
             if is_our_turn:
                 # OUR BOT's turn
                 if is_opening_move:
-                    # First move of the game - 100% random
                     legal_moves = list(board.legal_moves)
                     if legal_moves:
                         move = random.choice(legal_moves)
@@ -480,17 +475,16 @@ class DataGenerator:
                     else:
                         break
                 else:
-                    # Non-opening moves - use configured style
                     try:
                         move, _ = self.bot_selector.select_move(
                             board, 
                             self.engine, 
                             depth=Config.DEPTH - 4,
                             is_opening=False,
-                            is_our_turn=is_our_turn
+                            is_our_turn=is_our_turn,
+                            move_number=move_count
                         )
                         if move is None:
-                            # Fallback to random move if no move selected
                             legal_moves = list(board.legal_moves)
                             if legal_moves:
                                 move = random.choice(legal_moves)
@@ -498,14 +492,13 @@ class DataGenerator:
                                 break
                     except Exception as e:
                         print(f"  Warning: Error in OUR bot move selection: {e}")
-                        # Fallback to random
                         legal_moves = list(board.legal_moves)
                         if legal_moves:
                             move = random.choice(legal_moves)
                         else:
                             break
             else:
-                # STOCKFISH's turn - let Stockfish play normally with its skill level
+                # STOCKFISH's turn
                 try:
                     result = self.engine.play(board, limit=chess.engine.Limit(depth=Config.DEPTH-2))
                     move = result.move
@@ -513,7 +506,6 @@ class DataGenerator:
                     print(f"  ♟️  Stockfish ({side}) plays: {board.san(move)}")
                 except Exception as e:
                     print(f"  Warning: Stockfish move error: {e}")
-                    # Fallback to random move
                     legal_moves = list(board.legal_moves)
                     if legal_moves:
                         move = random.choice(legal_moves)
@@ -530,41 +522,56 @@ class DataGenerator:
                 break
             visited_positions.add(pos_key)
         
-        # Determine result
+        # ============================================================
+        # DETERMINAÇÃO DO RESULTADO - CORRIGIDA
+        # ============================================================
         result = 0.0
         if board.is_checkmate():
-            # Check who won based on who started
+            # board.turn indica de quem é a vez APÓS o último movimento
+            # Se board.turn == WHITE, então Black deu xeque-mate
+            # Se board.turn == BLACK, então White deu xeque-mate
+            
+            # Determinar se OUR bot ganhou ou perdeu
             if our_bot_starts:
-                # OUR bot is White, Stockfish is Black
-                # White wins on even moves (OUR bot's turn just moved), Black wins on odd moves
-                if move_count % 2 == 1:  # OUR bot (White) made the last move
-                    result = 1.0  # OUR bot wins
-                else:
-                    result = 0.0  # Stockfish wins
+                # OUR bot é White, Stockfish é Black
+                if board.turn == chess.BLACK:
+                    # White deu xeque-mate -> OUR bot (White) ganhou
+                    result = 1.0
+                    print(f"  ✅ OUR Bot (White) won by checkmate!")
+                else:  # board.turn == chess.WHITE
+                    # Black deu xeque-mate -> Stockfish (Black) ganhou
+                    result = 0.0
+                    print(f"  ❌ Stockfish (Black) won by checkmate!")
             else:
-                # Stockfish is White, OUR bot is Black
-                # White wins on even moves (Stockfish's turn just moved), Black wins on odd moves
-                if move_count % 2 == 1:  # OUR bot (Black) made the last move
-                    result = 1.0  # OUR bot wins
-                else:
-                    result = 0.0  # Stockfish wins
-        elif board.is_stalemate() or board.is_insufficient_material():
+                # Stockfish é White, OUR bot é Black
+                if board.turn == chess.BLACK:
+                    # White deu xeque-mate -> Stockfish (White) ganhou
+                    result = 0.0
+                    print(f"  ❌ Stockfish (White) won by checkmate!")
+                else:  # board.turn == chess.WHITE
+                    # Black deu xeque-mate -> OUR bot (Black) ganhou
+                    result = 1.0
+                    print(f"  ✅ OUR Bot (Black) won by checkmate!")
+        
+        elif board.is_stalemate():
             result = 0.5
+            print(f"  🤝 Stalemate - Draw!")
+        elif board.is_insufficient_material():
+            result = 0.5
+            print(f"  🤝 Insufficient material - Draw!")
+        elif board.is_fivefold_repetition():
+            result = 0.5
+            print(f"  🤝 Fivefold repetition - Draw!")
+        elif board.is_seventyfive_moves():
+            result = 0.5
+            print(f"  🤝 75-move rule - Draw!")
         
         # Store the result in all positions
         for pos in positions:
             pos.result = result
         
-        # Print game result
-        if result == 1.0:
-            print(f"  ✅ OUR Bot wins!")
-        elif result == 0.0:
-            print(f"  ❌ Stockfish wins!")
-        else:
-            print(f"  🤝 Draw!")
-        
         return positions
-    
+
     def _get_openings(self):
         return [
             "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
