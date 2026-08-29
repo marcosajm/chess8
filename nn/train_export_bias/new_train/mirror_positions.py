@@ -36,16 +36,16 @@ class BinPackReader:
                 # Read header (number of positions)
                 header = f.read(PACKED_HEADER)
                 if not header:
-                    print("❌ Empty file or invalid header")
+                    #print("❌ Empty file or invalid header")
                     return
                 
                 num_positions = struct.unpack('<I', header)[0]
-                print(f"📊 File header indicates {num_positions:,} positions")
+                #print(f"📊 File header indicates {num_positions:,} positions")
                 
                 # Limit positions if specified
                 if self.max_positions:
                     num_positions = min(num_positions, self.max_positions)
-                    print(f"📊 Limiting to {num_positions:,} positions")
+                    #print(f"📊 Limiting to {num_positions:,} positions")
                 
                 # Pre-allocate arrays for memory efficiency
                 self.positions = []
@@ -77,10 +77,10 @@ class BinPackReader:
                     self.scores.append(score)
                     self.moves.append(move)
                 
-                print(f"✅ Loaded {len(self.positions):,} positions")
+                #print(f"✅ Loaded {len(self.positions):,} positions")
                 
         except Exception as e:
-            print(f"❌ Error loading file: {e}")
+            #print(f"❌ Error loading file: {e}")
             raise
     
     def get_data(self):
@@ -167,23 +167,23 @@ def mirror_dataset(input_file, output_file, max_positions=None, verbose=True):
         input_file: Path to input .binpack file
         output_file: Path to output .binpack file
         max_positions: Maximum number of positions to process (for testing)
-        verbose: Print progress information
+        verbose: #print progress information
     """
     
-    print(f"📖 Reading input file: {input_file}")
+    #print(f"📖 Reading input file: {input_file}")
     reader = BinPackReader(input_file, max_positions)
     positions, scores, moves = reader.get_data()
     
     if not positions:
-        print("❌ No positions found in input file!")
+        #print("❌ No positions found in input file!")
         return
     
-    print(f"✅ Loaded {len(positions):,} positions")
+    #print(f"✅ Loaded {len(positions):,} positions")
     
     # Process in batches to save memory
     batch_size = 1000000  # Process 1M positions at a time
     
-    print("🔄 Mirroring positions in batches...")
+    #print("🔄 Mirroring positions in batches...")
     
     # Open output file and write header
     with open(output_file, 'wb') as f:
@@ -215,26 +215,26 @@ def mirror_dataset(input_file, output_file, max_positions=None, verbose=True):
                     f.write(struct.pack('<H', moves[i]))  # Same move for mirrored position
                     total_written += 1
                 except Exception as e:
-                    print(f"⚠️ Warning: Failed to mirror position {i}: {e}")
+                    #print(f"⚠️ Warning: Failed to mirror position {i}: {e}")
                     continue
         
         # Update header with correct count
         f.seek(0)
         f.write(struct.pack('<I', total_written))
     
-    print(f"✅ Done! Created {total_written:,} positions (2x original)")
-    print(f"📊 Original: {len(positions):,} positions")
-    print(f"📊 Mirrored: {total_written:,} positions")
+    #print(f"✅ Done! Created {total_written:,} positions (2x original)")
+    #print(f"📊 Original: {len(positions):,} positions")
+    #print(f"📊 Mirrored: {total_written:,} positions")
     
     # Show statistics
     if verbose and scores:
         original_scores = np.array(scores)
-        print(f"\n📊 Original score statistics:")
-        print(f"Mean: {np.mean(original_scores):.2f}")
-        print(f"Std: {np.std(original_scores):.2f}")
-        print(f"Min: {np.min(original_scores):.2f}")
-        print(f"Max: {np.max(original_scores):.2f}")
-        print(f"Skewness: {float(np.mean((original_scores - np.mean(original_scores))**3) / np.std(original_scores)**3):.3f}" if np.std(original_scores) > 0 else "N/A")
+        #print(f"\n📊 Original score statistics:")
+        #print(f"Mean: {np.mean(original_scores):.2f}")
+        #print(f"Std: {np.std(original_scores):.2f}")
+        #print(f"Min: {np.min(original_scores):.2f}")
+        #print(f"Max: {np.max(original_scores):.2f}")
+        #print(f"Skewness: {float(np.mean((original_scores - np.mean(original_scores))**3) / np.std(original_scores)**3):.3f}" if np.std(original_scores) > 0 else "N/A")
 
 def main():
     parser = argparse.ArgumentParser(description='Mirror chess positions for NNUE training')
@@ -247,17 +247,17 @@ def main():
     args = parser.parse_args()
     
     if not os.path.exists(args.input):
-        print(f"❌ Error: Input file '{args.input}' not found!")
+        #print(f"❌ Error: Input file '{args.input}' not found!")
         return
     
     try:
         mirror_dataset(args.input, args.output, args.max_positions, verbose=not args.quiet)
     except KeyboardInterrupt:
-        print("\n⚠️ Interrupted by user")
+        #print("\n⚠️ Interrupted by user")
     except Exception as e:
-        print(f"❌ Error: {e}")
+        #print(f"❌ Error: {e}")
         import traceback
-        traceback.print_exc()
+        traceback.#print_exc()
 
 if __name__ == "__main__":
     main()

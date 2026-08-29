@@ -17,19 +17,19 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Função para imprimir mensagens
-print_message() {
+#print_message() {
     echo -e "${GREEN}[INFO]${NC} $1"
 }
 
-print_warning() {
+#print_warning() {
     echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
-print_error() {
+#print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-print_step() {
+#print_step() {
     echo -e "\n${BLUE}=== $1 ===${NC}"
 }
 
@@ -37,19 +37,19 @@ print_step() {
 load_emscripten_from_path() {
     local emsdk_path="${1:-/home/marcos/emsdk}"
     
-    print_step "Carregando ambiente Emscripten de: $emsdk_path"
+   print_step "Carregando ambiente Emscripten de: $emsdk_path"
     
     # Verificar se o diretório existe
     if [ ! -d "$emsdk_path" ]; then
-        print_error "Diretório $emsdk_path não encontrado!"
-        print_message "Verifique se o caminho está correto."
+       print_error "Diretório $emsdk_path não encontrado!"
+       print_message "Verifique se o caminho está correto."
         return 1
     fi
     
     # Verificar se o script emsdk_env.sh existe
     if [ ! -f "$emsdk_path/emsdk_env.sh" ]; then
-        print_error "Arquivo emsdk_env.sh não encontrado em $emsdk_path"
-        print_message "Certifique-se de que o Emscripten está instalado corretamente."
+       print_error "Arquivo emsdk_env.sh não encontrado em $emsdk_path"
+       print_message "Certifique-se de que o Emscripten está instalado corretamente."
         return 1
     fi
     
@@ -59,7 +59,7 @@ load_emscripten_from_path() {
     # Mudar para o diretório do Emsdk
     cd "$emsdk_path"
     
-    print_message "Carregando ambiente Emscripten..."
+   print_message "Carregando ambiente Emscripten..."
     
     # Carregar o ambiente
     source ./emsdk_env.sh
@@ -69,21 +69,21 @@ load_emscripten_from_path() {
     
     # Verificar se as variáveis foram carregadas
     if [ -n "$EMSDK" ]; then
-        print_message "✅ Ambiente Emscripten carregado com sucesso!"
-        print_message "  EMSDK: $EMSDK"
-        print_message "  EM_CONFIG: $EM_CONFIG"
-        print_message "  PATH inclui: $(which emcc 2>/dev/null || echo 'emcc não encontrado no PATH')"
+       print_message "✅ Ambiente Emscripten carregado com sucesso!"
+       print_message "  EMSDK: $EMSDK"
+       print_message "  EM_CONFIG: $EM_CONFIG"
+       print_message "  PATH inclui: $(which emcc 2>/dev/null || echo 'emcc não encontrado no PATH')"
         return 0
     else
-        print_warning "⚠️  Parece que o ambiente não foi carregado corretamente."
-        print_message "Tente executar manualmente: source $emsdk_path/emsdk_env.sh"
+       print_warning "⚠️  Parece que o ambiente não foi carregado corretamente."
+       print_message "Tente executar manualmente: source $emsdk_path/emsdk_env.sh"
         return 1
     fi
 }
 
 # Função para verificar a instalação
 verify_emscripten() {
-    print_step "Verificando instalação do Emscripten"
+   print_step "Verificando instalação do Emscripten"
     
     # Verificar comandos principais
     local commands=("emcc" "em++" "emar" "embuilder")
@@ -92,27 +92,27 @@ verify_emscripten() {
     for cmd in "${commands[@]}"; do
         if command -v "$cmd" &> /dev/null; then
             if [ "$cmd" = "emcc" ] || [ "$cmd" = "em++" ]; then
-                print_message "  $cmd: $(eval $cmd --version | head -n1)"
+               print_message "  $cmd: $(eval $cmd --version | head -n1)"
             else
-                print_message "  $cmd: ✓ Disponível"
+               print_message "  $cmd: ✓ Disponível"
             fi
         else
-            print_warning "  $cmd: ❌ Não encontrado"
+           print_warning "  $cmd: ❌ Não encontrado"
             all_ok=false
         fi
     done
     
     if [ "$all_ok" = true ]; then
-        print_message "✅ Todos os comandos Emscripten estão disponíveis!"
+       print_message "✅ Todos os comandos Emscripten estão disponíveis!"
     else
-        print_warning "⚠️  Alguns comandos não foram encontrados no PATH."
-        print_message "Certifique-se de que o ambiente foi carregado corretamente."
+       print_warning "⚠️  Alguns comandos não foram encontrados no PATH."
+       print_message "Certifique-se de que o ambiente foi carregado corretamente."
     fi
 }
 
 # Função para testar uma compilação simples
 test_compilation() {
-    print_step "Testando compilação simples"
+   print_step "Testando compilação simples"
     
     # Criar um arquivo C simples para teste
     local test_file="/tmp/test_emscripten.c"
@@ -132,16 +132,16 @@ int main() {
 }
 EOF
     
-    print_message "Compilando arquivo de teste: $test_file"
+   print_message "Compilando arquivo de teste: $test_file"
     
     if emcc "$test_file" -o "$output_file" -s WASM=1 -s EXPORTED_FUNCTIONS='["_main"]' 2>/dev/null; then
-        print_message "✅ Compilação bem-sucedida!"
-        print_message "  Arquivo gerado: $output_file"
-        print_message "  Tamanho: $(ls -lh "$output_file" | awk '{print $5}')"
+       print_message "✅ Compilação bem-sucedida!"
+       print_message "  Arquivo gerado: $output_file"
+       print_message "  Tamanho: $(ls -lh "$output_file" | awk '{#print $5}')"
         rm -f "$test_file" "$output_file"
         return 0
     else
-        print_error "❌ Falha na compilação de teste."
+       print_error "❌ Falha na compilação de teste."
         rm -f "$test_file"
         return 1
     fi
@@ -149,7 +149,7 @@ EOF
 
 # Função para mostrar informações do ambiente
 show_environment() {
-    print_step "Informações do Ambiente Emscripten"
+   print_step "Informações do Ambiente Emscripten"
     
     echo "EMSDK: ${EMSDK:-'Não definido'}"
     echo "EM_CONFIG: ${EM_CONFIG:-'Não definido'}"
@@ -180,14 +180,14 @@ main() {
         echo ""
         show_environment
         echo ""
-        print_message "✅ Ambiente Emscripten pronto para uso!"
+       print_message "✅ Ambiente Emscripten pronto para uso!"
         echo ""
-        print_message "Para usar, execute comandos como:"
+       print_message "Para usar, execute comandos como:"
         echo "  emcc hello.c -o hello.html"
         echo "  em++ hello.cpp -o hello.html"
     else
-        print_error "❌ Falha ao carregar o ambiente Emscripten."
-        print_message "Tente executar manualmente:"
+       print_error "❌ Falha ao carregar o ambiente Emscripten."
+       print_message "Tente executar manualmente:"
         echo "  source /home/marcos/emsdk/emsdk_env.sh"
         exit 1
     fi

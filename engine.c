@@ -44,7 +44,7 @@ EXPORT void init_board_wasm() {
             nnue_level = 1;
             printf("[NNUE] Active model: Level %d (nnue.bin)\n", nnue_level);
         } else {
-            fprintf(stderr, "Error loading NNUE weights\n");
+           fprintf(stderr, "Error loading NNUE weights\n");
         }
     }
 }
@@ -126,7 +126,7 @@ EXPORT void promote_pawn_wasm(int sq, int piece_type) {
     update_occ(&global_pos);
 
     promotion_pending = -1;
-    print_board_state();
+   print_board_state();
 }
 
 EXPORT int get_pawn_promotion_pending_index_wasm() {
@@ -206,7 +206,7 @@ EXPORT int set_difficulty_wasm(int level) {
         return 1;
     }
 
-    fprintf(stderr, "[DIFFICULTY] Failed to load %s\n", model_path);
+   fprintf(stderr, "[DIFFICULTY] Failed to load %s\n", model_path);
     return 0;
 }
 
@@ -240,14 +240,14 @@ EXPORT int make_move_wasm(int from, int to) {
                 // apply_move(&global_pos, MOVE(from, to, FLAG_NONE));
                 update_occ(&global_pos);
                 //printf("[PROMO] Pending at %s\n", ts);
-                print_board_state();
+               print_board_state();
                 return 2;
             }
             // Regular move (non-promotion)
             apply_move(&global_pos, m);
             update_occ(&global_pos);
             //printf("[MOVE] Applied %s -> %s\n", fs, ts);
-            print_board_state();
+           print_board_state();
             return 1;
         }
     }
@@ -272,7 +272,7 @@ EXPORT void reset_game(Position *pos) {
 static void uci_loop(void) {
     char line[4096];
 
-    // Print ID on engine start if GUI sends input immediately
+    // #print ID on engine start if GUI sends input immediately
     // Engine identifies again when "uci" is received (per spec it's fine).
     while (fgets(line, sizeof(line), stdin)) {
         // Trim trailing newline
@@ -329,8 +329,8 @@ static void uci_loop(void) {
             break;
         }
         else if (!strncmp(line, "d", 1)) {
-            // Handy debug: print board
-            print_board_state();
+            // Handy debug: #print board
+           print_board_state();
         }
 
         fflush(stdout);

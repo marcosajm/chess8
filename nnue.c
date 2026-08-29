@@ -66,7 +66,7 @@ static bool alloc_layers(NNUEWeights *nn) {
 
 static bool load_into_layers(NNUEWeights *nn, const float *src, size_t floats) {
     if (floats != TOTAL_F) {
-        fprintf(stderr, "[NNUE] Size mismatch: got %zu, expected %zu\n", floats, TOTAL_F);
+       fprintf(stderr, "[NNUE] Size mismatch: got %zu, expected %zu\n", floats, TOTAL_F);
         return false;
     }
     
@@ -97,7 +97,7 @@ bool nnue_load_weights_from_file(NNUEWeights *nn, const char *path) {
 
     FILE *fp = fopen(path, "rb");
     if (!fp) { 
-        fprintf(stderr, "[NNUE] Failed to open %s\n", path); 
+       fprintf(stderr, "[NNUE] Failed to open %s\n", path); 
         return false; 
     }
 
@@ -106,7 +106,7 @@ bool nnue_load_weights_from_file(NNUEWeights *nn, const char *path) {
     fseek(fp, 0, SEEK_SET);
 
     if (sz != (long)TOTAL_BYTES) {
-        fprintf(stderr, "[NNUE] File size mismatch: got %ld, expected %zu\n", 
+       fprintf(stderr, "[NNUE] File size mismatch: got %ld, expected %zu\n", 
                 sz, TOTAL_BYTES);
         fclose(fp);
         return false;

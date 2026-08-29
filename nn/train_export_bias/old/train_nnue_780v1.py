@@ -241,10 +241,10 @@ class NNUEProduction(nn.Module):
             'b4': self.fc4.bias.detach().cpu().numpy()
         }
         
-        print("\n📊 Exporting weights for WASM:")
+        #print("\n📊 Exporting weights for WASM:")
         total_params = 0
         for name, data in weights.items():
-            print(f"  {name}: {data.shape} ({data.size:,} floats)")
+            #print(f"  {name}: {data.shape} ({data.size:,} floats)")
             total_params += data.size
         
         # Flatten in order: w1, b1, w2, b2, w3, b3, w4, b4
@@ -255,8 +255,8 @@ class NNUEProduction(nn.Module):
         flat_array = np.array(flat_weights, dtype=np.float32)
         flat_array.tofile(filepath)
         
-        print(f"\n💾 Exported {len(flat_array):,} floats to {filepath}")
-        print(f"   File size: {len(flat_array) * 4 / 1024 / 1024:.2f} MB")
+        #print(f"\n💾 Exported {len(flat_array):,} floats to {filepath}")
+        #print(f"   File size: {len(flat_array) * 4 / 1024 / 1024:.2f} MB")
         
         return flat_array
 
@@ -284,13 +284,13 @@ class DataGenerator:
             try:
                 self.engine.configure({"Skill Level": strength})
             except chess.engine.EngineError as e:
-                print(f"  Warning: Could not set Skill Level {strength}: {e}")
+                #print(f"  Warning: Could not set Skill Level {strength}: {e}")
                 # If Skill Level fails, use UCI_Elo instead (alternative)
                 try:
                     # Convert skill level to approximate Elo
                     elo = 800 + (strength * 100)
                     self.engine.configure({"UCI_Elo": elo})
-                    print(f"  Using UCI_Elo: {elo}")
+                    #print(f"  Using UCI_Elo: {elo}")
                 except:
                     pass  # Fall back to default strength
     
@@ -300,9 +300,9 @@ class DataGenerator:
             self.engine = None
     
     def generate_data(self, num_games: int = Config.NUM_GAMES):
-        print(f"\n📊 Generating {num_games} games with defensive features...")
-        print(f"   Stockfish path: {self.stockfish_path}")
-        print(f"   Skill levels: {Config.SKILL_LEVELS}")
+        #print(f"\n📊 Generating {num_games} games with defensive features...")
+        #print(f"   Stockfish path: {self.stockfish_path}")
+        #print(f"   Skill levels: {Config.SKILL_LEVELS}")
         
         all_positions = []
         openings = self._get_openings()
@@ -314,7 +314,7 @@ class DataGenerator:
         start_time = time.time()
         
         for strength_idx, strength in enumerate(strengths):
-            print(f"\n  Playing with Stockfish skill level: {strength}")
+            #print(f"\n  Playing with Stockfish skill level: {strength}")
             self.start_engine(strength)
             
             for game_idx in range(games_per_strength):
@@ -326,7 +326,7 @@ class DataGenerator:
                     elapsed = time.time() - start_time
                     total_games = strength_idx * games_per_strength + game_idx + 1
                     avg_pos = len(all_positions) // total_games if total_games > 0 else 0
-                    print(f"    Game {total_games}/{num_games} - {len(all_positions)} positions "
+                    #print(f"    Game {total_games}/{num_games} - {len(all_positions)} positions "
                           f"(~{avg_pos}/game) - {elapsed/60:.1f}min")
             
             self.stop_engine()
@@ -419,8 +419,8 @@ class DataGenerator:
                 f.write(struct.pack('fff', pos.score, pos.result, pos.tactical_score))
         
         file_size = os.path.getsize(Config.DATA_FILE) / (1024 * 1024)
-        print(f"\n✅ Saved {len(positions)} positions to {Config.DATA_FILE}")
-        print(f"   File size: {file_size:.2f} MB")
+        #print(f"\n✅ Saved {len(positions)} positions to {Config.DATA_FILE}")
+        #print(f"   File size: {file_size:.2f} MB")
 
 # ============== Dataset ==============
 class NNUE_Dataset(Dataset):
@@ -430,17 +430,17 @@ class NNUE_Dataset(Dataset):
         self._load_data(data_file)
     
     def _load_data(self, filename: str):
-        print(f"Loading training data from {filename}...")
+        #print(f"Loading training data from {filename}...")
         with open(filename, 'rb') as f:
             magic, count = struct.unpack('4sI', f.read(8))
             if magic != b'NNUE':
                 raise ValueError(f"Invalid file format")
             
-            print(f"Found {count} positions")
+            #print(f"Found {count} positions")
             
             for i in range(count):
                 if i % 50000 == 0 and i > 0:
-                    print(f"  Loaded {i} positions...")
+                    #print(f"  Loaded {i} positions...")
                 
                 feat_data = f.read(Config.NNUE_INPUT_DIM * 4)
                 if len(feat_data) < Config.NNUE_INPUT_DIM * 4:
@@ -454,7 +454,7 @@ class NNUE_Dataset(Dataset):
                 combined_score = score * 0.7 + tactical * 0.3
                 self.scores.append(combined_score)
         
-        print(f"Loaded {len(self.features)} positions")
+        #print(f"Loaded {len(self.features)} positions")
     
     def __len__(self):
         return len(self.features)
@@ -478,7 +478,7 @@ class NNUE_Dataset(Dataset):
 def train_model(model, train_loader, val_features, val_scores):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = model.to(device)
-    print(f"\n🔧 Using device: {device}")
+    #print(f"\n🔧 Using device: {device}")
     
     optimizer = optim.AdamW(model.parameters(), lr=Config.LEARNING_RATE, 
                            weight_decay=Config.WEIGHT_DECAY)
@@ -494,9 +494,9 @@ def train_model(model, train_loader, val_features, val_scores):
     
     os.makedirs(Config.CHECKPOINT_DIR, exist_ok=True)
     
-    print(f"\n🏋️  Training on {len(train_loader.dataset)} positions")
-    print(f"   Validation: {len(val_features)} positions")
-    print(f"   Batch size: {Config.BATCH_SIZE}")
+    #print(f"\n🏋️  Training on {len(train_loader.dataset)} positions")
+    #print(f"   Validation: {len(val_features)} positions")
+    #print(f"   Batch size: {Config.BATCH_SIZE}")
     
     for epoch in range(Config.EPOCHS):
         model.train()
@@ -527,17 +527,17 @@ def train_model(model, train_loader, val_features, val_scores):
         
         scheduler.step(val_loss)
         
-        print(f"Epoch {epoch+1}/{Config.EPOCHS} - Train Loss: {avg_train_loss:.6f}, Val Loss: {val_loss:.6f}")
+        #print(f"Epoch {epoch+1}/{Config.EPOCHS} - Train Loss: {avg_train_loss:.6f}, Val Loss: {val_loss:.6f}")
         
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             torch.save(model.state_dict(), os.path.join(Config.CHECKPOINT_DIR, 'best_model.pt'))
             patience_counter = 0
-            print(f"  ✅ New best model saved")
+            #print(f"  ✅ New best model saved")
         else:
             patience_counter += 1
             if patience_counter >= Config.PATIENCE:
-                print(f"  ⏹️  Early stopping at epoch {epoch+1}")
+                #print(f"  ⏹️  Early stopping at epoch {epoch+1}")
                 break
     
     # Load best model
@@ -552,78 +552,78 @@ def select_data_file() -> str:
     Ask the user whether to use the existing training_data.bin or specify a different file.
     Returns the path to the selected data file.
     """
-    print("\n" + "=" * 80)
-    print("📁 DATA FILE SELECTION")
-    print("=" * 80)
+    #print("\n" + "=" * 80)
+    #print("📁 DATA FILE SELECTION")
+    #print("=" * 80)
     
     default_file = Config.DATA_FILE
-    print(f"Default data file: {default_file}")
+    #print(f"Default data file: {default_file}")
     
     # Check if default file exists
     default_exists = os.path.exists(default_file)
     if default_exists:
         file_size = os.path.getsize(default_file) / (1024 * 1024)
-        print(f"✅ Default file exists: {default_file} ({file_size:.2f} MB)")
+        #print(f"✅ Default file exists: {default_file} ({file_size:.2f} MB)")
     else:
-        print(f"❌ Default file does not exist: {default_file}")
+        #print(f"❌ Default file does not exist: {default_file}")
     
-    print("\nOptions:")
-    print("  1. Use default file (training_data_prod.bin)")
-    print("  2. Specify a different data file")
-    print("  3. Generate new data")
+    #print("\nOptions:")
+    #print("  1. Use default file (training_data_prod.bin)")
+    #print("  2. Specify a different data file")
+    #print("  3. Generate new data")
     
     while True:
         choice = input("\nSelect option (1-3): ").strip()
         
         if choice == '1':
             if default_exists:
-                print(f"✅ Using default file: {default_file}")
+                #print(f"✅ Using default file: {default_file}")
                 return default_file
             else:
-                print("❌ Default file does not exist. Please choose another option.")
+                #print("❌ Default file does not exist. Please choose another option.")
                 continue
         
         elif choice == '2':
             while True:
                 custom_file = input("Enter the path to your training data file: ").strip()
                 if not custom_file:
-                    print("❌ File path cannot be empty.")
+                    #print("❌ File path cannot be empty.")
                     continue
                 
                 if os.path.exists(custom_file):
                     file_size = os.path.getsize(custom_file) / (1024 * 1024)
-                    print(f"✅ Using custom file: {custom_file} ({file_size:.2f} MB)")
+                    #print(f"✅ Using custom file: {custom_file} ({file_size:.2f} MB)")
                     return custom_file
                 else:
-                    print(f"❌ File not found: {custom_file}")
+                    #print(f"❌ File not found: {custom_file}")
                     retry = input("Try again? (y/n): ").strip().lower()
                     if retry != 'y':
                         break
             
             # If user gives up on custom file, fall back to generating new data
-            print("Falling back to generating new data...")
+            #print("Falling back to generating new data...")
             return None
         
         elif choice == '3':
-            print("📊 Will generate new training data...")
+            #print("📊 Will generate new training data...")
             return None
         
         else:
-            print("❌ Invalid option. Please enter 1, 2, or 3.")
+            #print("❌ Invalid option. Please enter 1, 2, or 3.")
     
     return None
 
 # ============== Main ==============
 def main():
-    print("=" * 80)
-    print("NNUE Production Training - WASM Optimized")
-    print(f"Network: {Config.NNUE_INPUT_DIM} -> {Config.NNUE_H1} -> {Config.NNUE_H2} -> {Config.NNUE_H3} -> 1")
-    print("=" * 80)
+    #print("=" * 80)
+    #print("NNUE Production Training - WASM Optimized")
+    #print(f"Network: {Config.NNUE_INPUT_DIM} -> {Config.NNUE_H1} -> {Config.NNUE_H2} -> {Config.NNUE_H3} -> 1")
+    #print("=" * 80)
     
     # Check Stockfish
     if not os.path.exists(Config.STOCKFISH_PATH):
-        print(f"\n⚠️  Stockfish not found at: {Config.STOCKFISH_PATH}")
-        print("Please install Stockfish or update STOCKFISH_PATH in Config")
+        #print(f"\n⚠️  Stockfish not found at: {Config.STOCKFISH_PATH}")
+        #print("Please install Stockfish or update STOCKFISH_PATH in Config")
         return
     
     # Step 1: Select data file or generate new data
@@ -631,24 +631,24 @@ def main():
     
     if data_file is None:
         # Generate new data
-        print("\n📊 Generating training data...")
+        #print("\n📊 Generating training data...")
         generator = DataGenerator()
         generator.generate_data()
         data_file = Config.DATA_FILE
     else:
-        print(f"\n📂 Using data file: {data_file}")
+        #print(f"\n📂 Using data file: {data_file}")
     
     # Step 2: Load and prepare data
-    print("\n📂 Loading data...")
+    #print("\n📂 Loading data...")
     try:
         dataset = NNUE_Dataset(data_file)
     except Exception as e:
-        print(f"❌ Error loading data: {e}")
-        print("Please check the file format or generate new data.")
+        #print(f"❌ Error loading data: {e}")
+        #print("Please check the file format or generate new data.")
         return
     
     if len(dataset) == 0:
-        print("❌ No data loaded!")
+        #print("❌ No data loaded!")
         return
     
     # Split data
@@ -670,20 +670,20 @@ def main():
     train_loader = DataLoader(train_dataset, batch_size=Config.BATCH_SIZE, 
                               shuffle=True, num_workers=0, pin_memory=True)
     
-    print(f"\n📊 Data split:")
-    print(f"  Training: {len(train_dataset):,} positions")
-    print(f"  Validation: {len(val_dataset):,} positions")
+    #print(f"\n📊 Data split:")
+    #print(f"  Training: {len(train_dataset):,} positions")
+    #print(f"  Validation: {len(val_dataset):,} positions")
     
     # Step 3: Train model
-    print(f"\n🧠 Creating production model...")
+    #print(f"\n🧠 Creating production model...")
     model = NNUEProduction()
     total_params = sum(p.numel() for p in model.parameters())
-    print(f"  Total parameters: {total_params:,}")
+    #print(f"  Total parameters: {total_params:,}")
     
     model = train_model(model, train_loader, val_features, val_scores)
     
     # Step 4: Export for WASM
-    print(f"\n💾 Exporting WASM weights...")
+    #print(f"\n💾 Exporting WASM weights...")
     model.export_weights_wasm(Config.WASM_WEIGHTS_FILE)
     
     # Also save PyTorch model
@@ -692,11 +692,11 @@ def main():
     # Step 5: Verify
     verify_export(Config.WASM_WEIGHTS_FILE)
     
-    print("\n" + "=" * 80)
-    print("✅ Production training complete!")
-    print(f"  WASM weights: {Config.WASM_WEIGHTS_FILE}")
-    print(f"  Model: {Config.MODEL_FILE}")
-    print("=" * 80)
+    #print("\n" + "=" * 80)
+    #print("✅ Production training complete!")
+    #print(f"  WASM weights: {Config.WASM_WEIGHTS_FILE}")
+    #print(f"  Model: {Config.MODEL_FILE}")
+    #print("=" * 80)
 
 def verify_export(filepath):
     """Verify exported weights file"""
@@ -713,22 +713,22 @@ def verify_export(filepath):
         
         expected_bytes = expected_params * 4
         
-        print(f"\n🔍 Verification:")
-        print(f"  File: {filepath}")
-        print(f"  Size: {file_size:,} bytes ({file_size/1024/1024:.2f} MB)")
-        print(f"  Expected: {expected_bytes:,} bytes ({expected_bytes/1024/1024:.2f} MB)")
+        #print(f"\n🔍 Verification:")
+        #print(f"  File: {filepath}")
+        #print(f"  Size: {file_size:,} bytes ({file_size/1024/1024:.2f} MB)")
+        #print(f"  Expected: {expected_bytes:,} bytes ({expected_bytes/1024/1024:.2f} MB)")
         
         if file_size == expected_bytes:
-            print("  ✅ File size matches!")
+            #print("  ✅ File size matches!")
             
             # Test read
             weights = np.fromfile(filepath, dtype=np.float32)
-            print(f"  ✅ Successfully read {len(weights):,} floats")
+            #print(f"  ✅ Successfully read {len(weights):,} floats")
         else:
-            print(f"  ⚠️  File size mismatch!")
+            #print(f"  ⚠️  File size mismatch!")
             
     except Exception as e:
-        print(f"  ❌ Error verifying: {e}")
+        #print(f"  ❌ Error verifying: {e}")
 
 if __name__ == "__main__":
     main()

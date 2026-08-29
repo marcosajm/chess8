@@ -402,7 +402,7 @@ void generate_all_moves(const Position *pos, MoveList *list) {
     
     //printf("[DEBUG] Generating moves for %s\n", s == WHITE ? "White" : "Black");
     //printf("[DEBUG] Board state before movegen:\n");
-   // print_board_state(); // Add this function if you don't have it    
+   //print_board_state(); // Add this function if you don't have it    
     
     generate_pawn_moves(pos, list, s);
     generate_knight_moves(pos, list, s);

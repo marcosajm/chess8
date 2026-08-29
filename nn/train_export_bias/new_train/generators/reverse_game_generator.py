@@ -190,7 +190,7 @@ class ReverseGameGenerator:
     
     def generate_reverse_positions(self, num_games: int = ReverseConfig.NUM_REVERSE_GAMES) -> List[Tuple[np.ndarray, float]]:
         """Generate positions by walking backwards from checkmate"""
-        print(f"🔄 Generating {num_games} reverse-engineered positions...")
+        #print(f"🔄 Generating {num_games} reverse-engineered positions...")
         
         all_positions = []
         successful = 0
@@ -198,7 +198,7 @@ class ReverseGameGenerator:
         
         # First, collect checkmate positions
         mate_positions = []
-        print("  Generating checkmate patterns...")
+        #print("  Generating checkmate patterns...")
         for i in range(ReverseConfig.NUM_MATE_PATTERNS):
             mate = self.mate_generator.generate_random_mate()
             if mate:
@@ -206,10 +206,10 @@ class ReverseGameGenerator:
                 if len(mate_positions) >= ReverseConfig.NUM_MATE_PATTERNS // 2:
                     break
         
-        print(f"  Generated {len(mate_positions)} checkmate positions")
+        #print(f"  Generated {len(mate_positions)} checkmate positions")
         
         if not mate_positions:
-            print("  ⚠️ No checkmate positions generated!")
+            #print("  ⚠️ No checkmate positions generated!")
             return []
         
         # Now work backwards from each mate
@@ -233,9 +233,9 @@ class ReverseGameGenerator:
                     
                     if successful % 100 == 0:
                         elapsed = time.time() - start_time
-                        print(f"  Generated {successful} games ({len(all_positions)} positions) - {elapsed:.1f}s")
+                        #print(f"  Generated {successful} games ({len(all_positions)} positions) - {elapsed:.1f}s")
         
-        print(f"\n✅ Generated {len(all_positions)} positions from {successful} reverse games")
+        #print(f"\n✅ Generated {len(all_positions)} positions from {successful} reverse games")
         return all_positions
     
     def _walk_backwards_from_mate(self, mate_board: chess.Board, max_ply: int = ReverseConfig.MAX_PLY_FROM_MATE) -> List[Tuple[np.ndarray, float]]:
@@ -390,10 +390,10 @@ class ReverseGameGenerator:
     
     def save_reverse_data(self, positions: List[Tuple[np.ndarray, float]], filename: str = ReverseConfig.OUTPUT_FILE):
         """Save reverse-generated training data"""
-        print(f"\n💾 Saving reverse data to {filename}...")
+        #print(f"\n💾 Saving reverse data to {filename}...")
         
         if not positions:
-            print("  No positions to save!")
+            #print("  No positions to save!")
             return
         
         with open(filename, 'wb') as f:
@@ -409,7 +409,7 @@ class ReverseGameGenerator:
                 f.write(struct.pack('ff', 0.0, 0.0))
         
         file_size = os.path.getsize(filename) / (1024 * 1024)
-        print(f"  Saved {len(positions)} positions ({file_size:.2f} MB)")
+        #print(f"  Saved {len(positions)} positions ({file_size:.2f} MB)")
 
 # ============== Data Combiner ==============
 class DataCombiner:
@@ -418,7 +418,7 @@ class DataCombiner:
     @staticmethod
     def combine_data_files(original_file: str, reverse_file: str, output_file: str):
         """Combine original and reverse-generated data files"""
-        print(f"\n🔗 Combining data files...")
+        #print(f"\n🔗 Combining data files...")
         
         all_positions = []
         all_positions_original = []
@@ -426,7 +426,7 @@ class DataCombiner:
         
         # Load original data
         if os.path.exists(original_file):
-            print(f"  Loading original data from {original_file}")
+            #print(f"  Loading original data from {original_file}")
             try:
                 with open(original_file, 'rb') as f:
                     magic, count = struct.unpack('4sI', f.read(8))
@@ -442,15 +442,15 @@ class DataCombiner:
                                 all_positions_original.append((features, score, result, tactical))
                             except:
                                 break
-                        print(f"  Loaded {len(all_positions)} positions from original data")
+                        #print(f"  Loaded {len(all_positions)} positions from original data")
             except Exception as e:
-                print(f"  Error loading original data: {e}")
+                #print(f"  Error loading original data: {e}")
         else:
-            print(f"  Original data file not found: {original_file}")
+            #print(f"  Original data file not found: {original_file}")
         
         # Load reverse data
         if os.path.exists(reverse_file):
-            print(f"  Loading reverse data from {reverse_file}")
+            #print(f"  Loading reverse data from {reverse_file}")
             try:
                 with open(reverse_file, 'rb') as f:
                     magic, count = struct.unpack('4sI', f.read(8))
@@ -467,18 +467,18 @@ class DataCombiner:
                                 reverse_count += 1
                             except:
                                 break
-                        print(f"  Loaded {reverse_count} reverse positions")
+                        #print(f"  Loaded {reverse_count} reverse positions")
             except Exception as e:
-                print(f"  Error loading reverse data: {e}")
+                #print(f"  Error loading reverse data: {e}")
         else:
-            print(f"  Reverse data file not found: {reverse_file}")
+            #print(f"  Reverse data file not found: {reverse_file}")
         
         if not all_positions:
-            print("  No positions loaded!")
+            #print("  No positions loaded!")
             return
         
         # Save combined data
-        print(f"\n  Saving combined data to {output_file}")
+        #print(f"\n  Saving combined data to {output_file}")
         with open(output_file, 'wb') as f:
             f.write(struct.pack('4sI', b'NNUE', len(all_positions)))
             for features, score, result, tactical in all_positions:
@@ -486,16 +486,16 @@ class DataCombiner:
                 f.write(struct.pack('fff', score, result, tactical))
         
         file_size = os.path.getsize(output_file) / (1024 * 1024)
-        print(f"  Saved {len(all_positions)} total positions ({file_size:.2f} MB)")
-        print(f"  Original: {len(all_positions_original)}")
-        print(f"  Reverse: {reverse_count}")
+        #print(f"  Saved {len(all_positions)} total positions ({file_size:.2f} MB)")
+        #print(f"  Original: {len(all_positions_original)}")
+        #print(f"  Reverse: {reverse_count}")
 
 # ============== Main ==============
 def main():
-    print("=" * 80)
-    print("🔄 Reverse Game Generator - Endgame Focus")
-    print("   Generating positions backwards from checkmate")
-    print("=" * 80)
+    #print("=" * 80)
+    #print("🔄 Reverse Game Generator - Endgame Focus")
+    #print("   Generating positions backwards from checkmate")
+    #print("=" * 80)
     
     # Step 1: Generate reverse positions
     generator = ReverseGameGenerator()
@@ -504,7 +504,7 @@ def main():
     if positions:
         generator.save_reverse_data(positions)
     else:
-        print("\n⚠️ No positions generated!")
+        #print("\n⚠️ No positions generated!")
         return
     
     # Step 2: Combine with original data
@@ -515,14 +515,14 @@ def main():
             ReverseConfig.COMBINED_FILE
         )
     else:
-        print("\n⚠️  Original data file not found or no reverse data generated")
-        print(f"   Looking for: {ReverseConfig.ORIGINAL_DATA_FILE}")
-        print(f"   Reverse data: {ReverseConfig.OUTPUT_FILE}")
+        #print("\n⚠️  Original data file not found or no reverse data generated")
+        #print(f"   Looking for: {ReverseConfig.ORIGINAL_DATA_FILE}")
+        #print(f"   Reverse data: {ReverseConfig.OUTPUT_FILE}")
     
     # Step 3: Generate statistics
     if positions:
-        print("\n📊 Statistics:")
-        print(f"  Total positions generated: {len(positions)}")
+        #print("\n📊 Statistics:")
+        #print(f"  Total positions generated: {len(positions)}")
         
         # Count unique positions
         unique_fens = set()
@@ -531,23 +531,23 @@ def main():
             hash_val = hash(features.tobytes())
             unique_fens.add(hash_val)
         
-        print(f"  Unique positions: {len(unique_fens)}")
+        #print(f"  Unique positions: {len(unique_fens)}")
         if len(positions) > 0:
             duplicate_rate = (1 - len(unique_fens)/len(positions)) * 100
-            print(f"  Duplicate rate: {duplicate_rate:.1f}%")
+            #print(f"  Duplicate rate: {duplicate_rate:.1f}%")
     
-    print("\n✅ Reverse game generation complete!")
-    print(f"  Output file: {ReverseConfig.OUTPUT_FILE}")
+    #print("\n✅ Reverse game generation complete!")
+    #print(f"  Output file: {ReverseConfig.OUTPUT_FILE}")
     if os.path.exists(ReverseConfig.ORIGINAL_DATA_FILE):
-        print(f"  Combined file: {ReverseConfig.COMBINED_FILE}")
-    print("=" * 80)
+        #print(f"  Combined file: {ReverseConfig.COMBINED_FILE}")
+    #print("=" * 80)
     
     # Instructions for integration
-    print("\n📝 To integrate with original training pipeline:")
-    print("  1. Use the combined file for training:")
-    print(f"     Config.DATA_FILE = '{ReverseConfig.COMBINED_FILE}'")
-    print("  2. Or train separately and ensemble the models")
-    print("  3. The reverse data adds tactical awareness in endgames")
+    #print("\n📝 To integrate with original training pipeline:")
+    #print("  1. Use the combined file for training:")
+    #print(f"     Config.DATA_FILE = '{ReverseConfig.COMBINED_FILE}'")
+    #print("  2. Or train separately and ensemble the models")
+    #print("  3. The reverse data adds tactical awareness in endgames")
 
 if __name__ == "__main__":
     main()

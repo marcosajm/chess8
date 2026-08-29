@@ -186,7 +186,7 @@ class DataGenerator:
         return positions
     
     def generate_data(self, num_games: int = Config.NUM_GAMES):
-        print(f"Generating {num_games} self-play games at depth {Config.DEPTH}...")
+        #print(f"Generating {num_games} self-play games at depth {Config.DEPTH}...")
         
         self.start_engine()
         all_positions = []
@@ -202,7 +202,7 @@ class DataGenerator:
             if (game_idx + 1) % 10 == 0:
                 elapsed = time.time() - start_time
                 avg = len(all_positions) // (game_idx + 1)
-                print(f"Game {game_idx + 1}/{num_games} - {len(all_positions)} positions ({avg}/game) - {elapsed/60:.1f}min")
+                #print(f"Game {game_idx + 1}/{num_games} - {len(all_positions)} positions ({avg}/game) - {elapsed/60:.1f}min")
         
         self.stop_engine()
         self._save_data(all_positions)
@@ -225,8 +225,8 @@ class DataGenerator:
                 f.write(struct.pack('ff', pos.score, pos.result))
         
         file_size = os.path.getsize(Config.DATA_FILE) / (1024 * 1024)
-        print(f"Saved {len(positions)} positions to {Config.DATA_FILE}")
-        print(f"File size: {file_size:.2f} MB")
+        #print(f"Saved {len(positions)} positions to {Config.DATA_FILE}")
+        #print(f"File size: {file_size:.2f} MB")
 
 # ============== Dataset ==============
 class NNUE_Dataset(Dataset):
@@ -236,21 +236,21 @@ class NNUE_Dataset(Dataset):
         self._load_data(data_file)
     
     def _load_data(self, filename: str):
-        print(f"Loading training data from {filename}...")
+        #print(f"Loading training data from {filename}...")
         with open(filename, 'rb') as f:
             magic, count = struct.unpack('4sI', f.read(8))
             if magic != b'NNUE':
                 raise ValueError(f"Invalid file format")
             
-            print(f"Found {count} positions")
+            #print(f"Found {count} positions")
             
             for i in range(count):
                 if i % 10000 == 0 and i > 0:
-                    print(f"  Loaded {i} positions...")
+                    #print(f"  Loaded {i} positions...")
                 
                 feat_data = f.read(Config.NNUE_INPUT_DIM * 4)
                 if len(feat_data) < Config.NNUE_INPUT_DIM * 4:
-                    print(f"Warning: Incomplete data at position {i}")
+                    #print(f"Warning: Incomplete data at position {i}")
                     break
                     
                 feat = np.frombuffer(feat_data, dtype=np.float32)
@@ -258,7 +258,7 @@ class NNUE_Dataset(Dataset):
                 score, result = struct.unpack('ff', f.read(8))
                 self.scores.append(score)
         
-        print(f"Loaded {len(self.features)} positions")
+        #print(f"Loaded {len(self.features)} positions")
     
     def __len__(self):
         return len(self.features)
@@ -300,13 +300,13 @@ class NNUE(nn.Module):
             'b3': self.fc3.bias.detach().cpu().numpy()
         }
         
-        print("\n📊 Exporting weights:")
-        print(f"  w1: {weights['w1'].shape} ({weights['w1'].size:,} floats)")
-        print(f"  b1: {weights['b1'].shape} ({weights['b1'].size:,} floats)")
-        print(f"  w2: {weights['w2'].shape} ({weights['w2'].size:,} floats)")
-        print(f"  b2: {weights['b2'].shape} ({weights['b2'].size:,} floats)")
-        print(f"  w3: {weights['w3'].shape} ({weights['w3'].size:,} floats)")
-        print(f"  b3: {weights['b3'].shape} ({weights['b3'].size:,} floats)")
+        #print("\n📊 Exporting weights:")
+        #print(f"  w1: {weights['w1'].shape} ({weights['w1'].size:,} floats)")
+        #print(f"  b1: {weights['b1'].shape} ({weights['b1'].size:,} floats)")
+        #print(f"  w2: {weights['w2'].shape} ({weights['w2'].size:,} floats)")
+        #print(f"  b2: {weights['b2'].shape} ({weights['b2'].size:,} floats)")
+        #print(f"  w3: {weights['w3'].shape} ({weights['w3'].size:,} floats)")
+        #print(f"  b3: {weights['b3'].shape} ({weights['b3'].size:,} floats)")
         
         # Flatten in order: w1, b1, w2, b2, w3, b3
         flat_weights = []
@@ -327,13 +327,13 @@ class NNUE(nn.Module):
                    Config.NNUE_H2 * 1 +
                    1)
         
-        print(f"\n💾 Exported {len(flat_array):,} floats to {filepath}")
-        print(f"Expected: {expected:,} floats")
+        #print(f"\n💾 Exported {len(flat_array):,} floats to {filepath}")
+        #print(f"Expected: {expected:,} floats")
         
         if len(flat_array) == expected:
-            print("✅ Size matches C code!")
+            #print("✅ Size matches C code!")
         else:
-            print(f"⚠️  Size mismatch! Got {len(flat_array)}, expected {expected}")
+            #print(f"⚠️  Size mismatch! Got {len(flat_array)}, expected {expected}")
         
         return flat_array
 
@@ -341,7 +341,7 @@ class NNUE(nn.Module):
 def train_model(model, train_loader, val_features, val_scores):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = model.to(device)
-    print(f"Using device: {device}")
+    #print(f"Using device: {device}")
     
     optimizer = optim.Adam(model.parameters(), lr=Config.LEARNING_RATE, 
                           weight_decay=Config.WEIGHT_DECAY)
@@ -355,9 +355,9 @@ def train_model(model, train_loader, val_features, val_scores):
     best_val_loss = float('inf')
     patience_counter = 0
     
-    print(f"\n🏋️  Training on {len(train_loader.dataset)} positions")
-    print(f"   Validation: {len(val_features)} positions")
-    print(f"   Batch size: {Config.BATCH_SIZE}")
+    #print(f"\n🏋️  Training on {len(train_loader.dataset)} positions")
+    #print(f"   Validation: {len(val_features)} positions")
+    #print(f"   Batch size: {Config.BATCH_SIZE}")
     
     for epoch in range(Config.EPOCHS):
         model.train()
@@ -387,17 +387,17 @@ def train_model(model, train_loader, val_features, val_scores):
         
         scheduler.step(val_loss)
         
-        print(f"Epoch {epoch+1}/{Config.EPOCHS} - Train Loss: {avg_train_loss:.6f}, Val Loss: {val_loss:.6f}")
+        #print(f"Epoch {epoch+1}/{Config.EPOCHS} - Train Loss: {avg_train_loss:.6f}, Val Loss: {val_loss:.6f}")
         
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             torch.save(model.state_dict(), Config.MODEL_FILE)
             patience_counter = 0
-            print(f"  ✅ New best model saved!")
+            #print(f"  ✅ New best model saved!")
         else:
             patience_counter += 1
             if patience_counter >= Config.PATIENCE:
-                print(f"  ⏹️  Early stopping at epoch {epoch+1}")
+                #print(f"  ⏹️  Early stopping at epoch {epoch+1}")
                 break
     
     model.load_state_dict(torch.load(Config.MODEL_FILE))
@@ -405,18 +405,18 @@ def train_model(model, train_loader, val_features, val_scores):
 
 # ============== Main Pipeline ==============
 def main():
-    print("=" * 70)
-    print("NNUE Training Pipeline")
-    print(f"Network: {Config.NNUE_INPUT_DIM} -> {Config.NNUE_H1} -> {Config.NNUE_H2} -> 1")
-    print("=" * 70)
+    #print("=" * 70)
+    #print("NNUE Training Pipeline")
+    #print(f"Network: {Config.NNUE_INPUT_DIM} -> {Config.NNUE_H1} -> {Config.NNUE_H2} -> 1")
+    #print("=" * 70)
     
     # Step 1: Generate data if needed
     if not os.path.exists(Config.DATA_FILE):
-        print("\n📊 Generating training data...")
+        #print("\n📊 Generating training data...")
         generator = DataGenerator()
         generator.generate_data()
     else:
-        print(f"\n📂 Data file exists: {Config.DATA_FILE}")
+        #print(f"\n📂 Data file exists: {Config.DATA_FILE}")
         response = input("Regenerate data? (y/n): ")
         if response.lower() == 'y':
             os.remove(Config.DATA_FILE)
@@ -424,11 +424,11 @@ def main():
             generator.generate_data()
     
     # Step 2: Load data
-    print("\n📂 Loading data...")
+    #print("\n📂 Loading data...")
     dataset = NNUE_Dataset(Config.DATA_FILE)
     
     if len(dataset) == 0:
-        print("❌ No data loaded!")
+        #print("❌ No data loaded!")
         return
     
     # Step 3: Split data
@@ -452,30 +452,30 @@ def main():
     train_loader = DataLoader(train_dataset, batch_size=Config.BATCH_SIZE, 
                               shuffle=True, num_workers=0)
     
-    print(f"\n📊 Data split:")
-    print(f"  Training: {len(train_dataset)} positions")
-    print(f"  Validation: {len(val_dataset)} positions")
+    #print(f"\n📊 Data split:")
+    #print(f"  Training: {len(train_dataset)} positions")
+    #print(f"  Validation: {len(val_dataset)} positions")
     
     # Step 4: Create and train model
-    print(f"\n🧠 Creating model...")
+    #print(f"\n🧠 Creating model...")
     model = NNUE()
     total_params = sum(p.numel() for p in model.parameters())
-    print(f"  Total parameters: {total_params:,}")
+    #print(f"  Total parameters: {total_params:,}")
     
     model = train_model(model, train_loader, val_features, val_scores)
     
     # Step 5: Export weights
-    print(f"\n💾 Exporting weights...")
+    #print(f"\n💾 Exporting weights...")
     model.export_weights(Config.WEIGHTS_FILE)
     
     # Step 6: Verify
     verify_exported_weights()
     
-    print("\n" + "=" * 70)
-    print("✅ Training complete!")
-    print(f"  Weights saved to: {Config.WEIGHTS_FILE}")
-    print(f"  Model saved to: {Config.MODEL_FILE}")
-    print("=" * 70)
+    #print("\n" + "=" * 70)
+    #print("✅ Training complete!")
+    #print(f"  Weights saved to: {Config.WEIGHTS_FILE}")
+    #print(f"  Model saved to: {Config.MODEL_FILE}")
+    #print("=" * 70)
 
 def verify_exported_weights():
     """Verify the exported weights file"""
@@ -488,22 +488,22 @@ def verify_exported_weights():
                    Config.NNUE_H2 * 1 +
                    1) * 4
         
-        print(f"\n🔍 Verification:")
-        print(f"  File: {Config.WEIGHTS_FILE}")
-        print(f"  Size: {file_size:,} bytes")
-        print(f"  Expected: {expected:,} bytes")
+        #print(f"\n🔍 Verification:")
+        #print(f"  File: {Config.WEIGHTS_FILE}")
+        #print(f"  Size: {file_size:,} bytes")
+        #print(f"  Expected: {expected:,} bytes")
         
         if file_size == expected:
-            print("  ✅ File size matches C code expectations!")
+            #print("  ✅ File size matches C code expectations!")
             
             # Test read
             weights = np.fromfile(Config.WEIGHTS_FILE, dtype=np.float32)
-            print(f"  ✅ Successfully read {len(weights):,} floats")
+            #print(f"  ✅ Successfully read {len(weights):,} floats")
         else:
-            print(f"  ⚠️  File size mismatch!")
+            #print(f"  ⚠️  File size mismatch!")
             
     except Exception as e:
-        print(f"Error verifying file: {e}")
+        #print(f"Error verifying file: {e}")
 
 if __name__ == "__main__":
     main()

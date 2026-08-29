@@ -23,9 +23,9 @@ def test_with_position(fen: str):
         features_tensor = torch.tensor(features, dtype=torch.float32).unsqueeze(0)
         score = model(features_tensor).item()
     
-    print(f"Position: {fen}")
-    print(f"Model evaluation: {score:.2f}")
-    print(f"Board:\n{board}")
+    #print(f"Position: {fen}")
+    #print(f"Model evaluation: {score:.2f}")
+    #print(f"Board:\n{board}")
     
     return score
 
@@ -47,8 +47,8 @@ def compare_with_stockfish(fen: str, stockfish_path: str):
     if stockfish_score is None:
         stockfish_score = 0
     
-    print(f"Stockfish evaluation: {stockfish_score/100:.2f}")
-    print(f"Difference: {abs(model_score - stockfish_score/100):.2f}")
+    #print(f"Stockfish evaluation: {stockfish_score/100:.2f}")
+    #print(f"Difference: {abs(model_score - stockfish_score/100):.2f}")
     
     return model_score, stockfish_score
 
@@ -60,7 +60,7 @@ if __name__ == "__main__":
         "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 3",
     ]
     
-    print("Testing trained model...")
+    #print("Testing trained model...")
     for fen in positions:
-        print("\n" + "="*50)
+        #print("\n" + "="*50)
         test_with_position(fen)

@@ -50,35 +50,35 @@ def deduplicate_file(input_file: str, output_file: str = None,
         backup: Criar backup antes de sobrescrever
     """
     if not os.path.exists(input_file):
-        print(f"❌ Arquivo não encontrado: {input_file}")
+        #print(f"❌ Arquivo não encontrado: {input_file}")
         return False
     
     # Se não especificou output, usa o mesmo arquivo (sobrescreve)
     if output_file is None:
         output_file = input_file
     
-    print("\n" + "="*80)
-    print(f"🗑️  REMOVENDO DUPLICATAS DE: {os.path.basename(input_file)}")
-    print("="*80)
+    #print("\n" + "="*80)
+    #print(f"🗑️  REMOVENDO DUPLICATAS DE: {os.path.basename(input_file)}")
+    #print("="*80)
     
     # Lê informações do arquivo
     count, size, valid = read_file_info(input_file)
     if not valid:
-        print("❌ Arquivo inválido!")
+        #print("❌ Arquivo inválido!")
         return False
     
-    print(f"\n📊 Total de posições: {count:,}")
-    print(f"💾 Tamanho: {size/1024/1024:.2f} MB")
-    print(f"🔍 Método: {method.upper()}")
+    #print(f"\n📊 Total de posições: {count:,}")
+    #print(f"💾 Tamanho: {size/1024/1024:.2f} MB")
+    #print(f"🔍 Método: {method.upper()}")
     
     # Se o arquivo de saída é o mesmo que o de entrada, cria backup
     if input_file == output_file and backup:
         backup_file = input_file + ".backup"
-        print(f"\n💾 Criando backup: {backup_file}")
+        #print(f"\n💾 Criando backup: {backup_file}")
         shutil.copy2(input_file, backup_file)
     
     # Processa a deduplicação
-    print(f"\n🚀 Processando...")
+    #print(f"\n🚀 Processando...")
     start_time = time.time()
     
     pos_size = 780 * 4 + 12
@@ -95,24 +95,24 @@ def deduplicate_file(input_file: str, output_file: str = None,
             magic, total = struct.unpack('4sI', in_f.read(8))
             
             if magic != b'NNUE':
-                print("❌ Magic number inválido!")
+                #print("❌ Magic number inválido!")
                 return False
             
             in_f.seek(8)
             for i in range(total):
                 pos_data = in_f.read(pos_size)
                 if len(pos_data) < pos_size:
-                    print(f"⚠️  Arquivo incompleto na posição {i}")
+                    #print(f"⚠️  Arquivo incompleto na posição {i}")
                     break
                 all_positions.append(pos_data)
                 
                 if (i + 1) % 10000 == 0:
-                    print(f"  Lendo: {i + 1:,}/{total:,}")
+                    #print(f"  Lendo: {i + 1:,}/{total:,}")
         
-        print(f"  ✅ Lidas {len(all_positions):,} posições")
+        #print(f"  ✅ Lidas {len(all_positions):,} posições")
         
         # Processa as posições únicas
-        print(f"\n🔍 Identificando duplicatas...")
+        #print(f"\n🔍 Identificando duplicatas...")
         
         with open(output_file, 'wb') as out_f:
             # Escreve cabeçalho (será atualizado depois)
@@ -136,7 +136,7 @@ def deduplicate_file(input_file: str, output_file: str = None,
                 
                 # Progresso
                 if (i + 1) % 5000 == 0:
-                    print(f"  Processando: {i + 1:,}/{len(all_positions):,}")
+                    #print(f"  Processando: {i + 1:,}/{len(all_positions):,}")
             
             # Atualiza cabeçalho
             out_f.seek(4)
@@ -145,61 +145,61 @@ def deduplicate_file(input_file: str, output_file: str = None,
         elapsed = time.time() - start_time
         new_size = os.path.getsize(output_file) / 1024 / 1024
         
-        print(f"\n✅ Deduplicação concluída!")
-        print(f"  📊 Posições originais: {len(all_positions):,}")
-        print(f"  🗑️  Duplicatas removidas: {duplicate_count:,}")
-        print(f"  📊 Posições únicas: {positions_written:,}")
-        print(f"  📊 Redução: {(duplicate_count/len(all_positions))*100:.1f}%")
-        print(f"  💾 Tamanho original: {size/1024/1024:.2f} MB")
-        print(f"  💾 Tamanho novo: {new_size:.2f} MB")
-        print(f"  💾 Economia: {(size - os.path.getsize(output_file))/1024/1024:.2f} MB")
-        print(f"  ⏱️  Tempo: {elapsed:.2f} segundos")
+        #print(f"\n✅ Deduplicação concluída!")
+        #print(f"  📊 Posições originais: {len(all_positions):,}")
+        #print(f"  🗑️  Duplicatas removidas: {duplicate_count:,}")
+        #print(f"  📊 Posições únicas: {positions_written:,}")
+        #print(f"  📊 Redução: {(duplicate_count/len(all_positions))*100:.1f}%")
+        #print(f"  💾 Tamanho original: {size/1024/1024:.2f} MB")
+        #print(f"  💾 Tamanho novo: {new_size:.2f} MB")
+        #print(f"  💾 Economia: {(size - os.path.getsize(output_file))/1024/1024:.2f} MB")
+        #print(f"  ⏱️  Tempo: {elapsed:.2f} segundos")
         
         # Verifica integridade
         count_final, size_final, valid_final = read_file_info(output_file)
         if valid_final and count_final == positions_written:
-            print(f"\n✅ Arquivo final válido!")
+            #print(f"\n✅ Arquivo final válido!")
             return True
         else:
-            print(f"\n❌ Arquivo final inválido!")
+            #print(f"\n❌ Arquivo final inválido!")
             return False
         
     except Exception as e:
-        print(f"❌ Erro durante deduplicação: {e}")
+        #print(f"❌ Erro durante deduplicação: {e}")
         return False
 
 def deduplicate_all_files(directory: str = ".", pattern: str = "training_data*_prod.bin"):
     """
     Remove duplicatas de todos os arquivos NNUE em um diretório
     """
-    print("\n" + "="*80)
-    print("🗑️  REMOVENDO DUPLICATAS DE TODOS OS ARQUIVOS")
-    print("="*80)
+    #print("\n" + "="*80)
+    #print("🗑️  REMOVENDO DUPLICATAS DE TODOS OS ARQUIVOS")
+    #print("="*80)
     
     files = sorted(glob.glob(os.path.join(directory, pattern)))
     files = [f for f in files if "merged" not in f.lower() and "backup" not in f.lower()]
     
     if not files:
-        print("❌ Nenhum arquivo encontrado!")
+        #print("❌ Nenhum arquivo encontrado!")
         return
     
-    print(f"\n📂 Encontrados {len(files)} arquivos:")
+    #print(f"\n📂 Encontrados {len(files)} arquivos:")
     for i, f in enumerate(files, 1):
         count, size, valid = read_file_info(f)
         if valid:
-            print(f"  {i:2d}. {os.path.basename(f):40s} - {count:6,} posições ({size/1024/1024:.2f} MB)")
+            #print(f"  {i:2d}. {os.path.basename(f):40s} - {count:6,} posições ({size/1024/1024:.2f} MB)")
     
     confirm = input(f"\n⚠️  Remover duplicatas de TODOS os {len(files)} arquivos? (s/N): ")
     if confirm.lower() != 's':
-        print("❌ Operação cancelada!")
+        #print("❌ Operação cancelada!")
         return
     
     total_removed = 0
     total_original = 0
     
     for f in files:
-        print(f"\n{'='*60}")
-        print(f"Processando: {os.path.basename(f)}")
+        #print(f"\n{'='*60}")
+        #print(f"Processando: {os.path.basename(f)}")
         
         # Cria arquivo temporário
         temp_file = f + ".dedup"
@@ -215,12 +215,12 @@ def deduplicate_all_files(directory: str = ".", pattern: str = "training_data*_p
                 # Verifica novo tamanho
                 new_count, new_size, _ = read_file_info(f)
                 total_original += new_count
-                print(f"  ✅ Arquivo atualizado: {new_count:,} posições")
+                #print(f"  ✅ Arquivo atualizado: {new_count:,} posições")
     
-    print(f"\n{'='*60}")
-    print(f"✅ Processo concluído!")
-    print(f"  Total de posições únicas: {total_original:,}")
-    print(f"  Total removido: {total_removed:,}")
+    #print(f"\n{'='*60}")
+    #print(f"✅ Processo concluído!")
+    #print(f"  Total de posições únicas: {total_original:,}")
+    #print(f"  Total removido: {total_removed:,}")
 
 # ============== FUNÇÕES EXISTENTES ==============
 
@@ -250,17 +250,17 @@ def get_position_hash(data: bytes) -> str:
 def analyze_duplicates(filename: str):
     """Analisa duplicatas em um arquivo"""
     if not os.path.exists(filename):
-        print(f"❌ Arquivo não encontrado: {filename}")
+        #print(f"❌ Arquivo não encontrado: {filename}")
         return
     
-    print(f"\n🔍 Analisando duplicatas em: {filename}")
+    #print(f"\n🔍 Analisando duplicatas em: {filename}")
     
     try:
         with open(filename, 'rb') as f:
             magic, total = struct.unpack('4sI', f.read(8))
             
             if magic != b'NNUE':
-                print("❌ Arquivo inválido!")
+                #print("❌ Arquivo inválido!")
                 return
             
             pos_size = 780 * 4 + 12
@@ -268,8 +268,8 @@ def analyze_duplicates(filename: str):
             duplicates = 0
             duplicate_positions = []
             
-            print(f"  Total de posições: {total:,}")
-            print(f"  Analisando...")
+            #print(f"  Total de posições: {total:,}")
+            #print(f"  Analisando...")
             
             f.seek(8)
             for i in range(total):
@@ -287,38 +287,38 @@ def analyze_duplicates(filename: str):
                     seen.add(pos_hash)
                 
                 if (i + 1) % 100000 == 0:
-                    print(f"    Progresso: {i + 1:,}/{total:,}")
+                    #print(f"    Progresso: {i + 1:,}/{total:,}")
             
-            print(f"\n  📊 Resultado:")
-            print(f"    Posições únicas: {total - duplicates:,}")
-            print(f"    Duplicatas: {duplicates:,}")
-            print(f"    Redução: {(duplicates/total)*100:.1f}%")
+            #print(f"\n  📊 Resultado:")
+            #print(f"    Posições únicas: {total - duplicates:,}")
+            #print(f"    Duplicatas: {duplicates:,}")
+            #print(f"    Redução: {(duplicates/total)*100:.1f}%")
             
             if duplicate_positions:
-                print(f"\n  🔍 Primeiras {min(5, len(duplicate_positions))} duplicatas:")
+                #print(f"\n  🔍 Primeiras {min(5, len(duplicate_positions))} duplicatas:")
                 for idx, (pos, hash_val) in enumerate(duplicate_positions[:5], 1):
-                    print(f"    {idx}. Posição {pos} - Hash: {hash_val}")
+                    #print(f"    {idx}. Posição {pos} - Hash: {hash_val}")
             
             return duplicates, total
             
     except Exception as e:
-        print(f"  ❌ Erro durante análise: {e}")
+        #print(f"  ❌ Erro durante análise: {e}")
         return None, None
 
 def analyze_position_scores(filename: str):
     """Analisa distribuição de scores"""
     if not os.path.exists(filename):
-        print(f"❌ Arquivo não encontrado: {filename}")
+        #print(f"❌ Arquivo não encontrado: {filename}")
         return
     
-    print(f"\n📊 ANALISANDO DISTRIBUIÇÃO DE SCORES: {filename}")
+    #print(f"\n📊 ANALISANDO DISTRIBUIÇÃO DE SCORES: {filename}")
     
     try:
         with open(filename, 'rb') as f:
             magic, total = struct.unpack('4sI', f.read(8))
             
             if magic != b'NNUE':
-                print("❌ Arquivo inválido!")
+                #print("❌ Arquivo inválido!")
                 return
             
             scores = []
@@ -334,42 +334,42 @@ def analyze_position_scores(filename: str):
                 scores.append(win)
             
             if not scores:
-                print("⚠️  Nenhum score válido encontrado!")
+                #print("⚠️  Nenhum score válido encontrado!")
                 return
             
             scores_array = np.array(scores)
             
-            print(f"\n  📈 Estatísticas dos scores (win probability):")
-            print(f"    Média: {np.mean(scores_array):.4f}")
-            print(f"    Mediana: {np.median(scores_array):.4f}")
-            print(f"    Desvio padrão: {np.std(scores_array):.4f}")
-            print(f"    Mínimo: {np.min(scores_array):.4f}")
-            print(f"    Máximo: {np.max(scores_array):.4f}")
+            #print(f"\n  📈 Estatísticas dos scores (win probability):")
+            #print(f"    Média: {np.mean(scores_array):.4f}")
+            #print(f"    Mediana: {np.median(scores_array):.4f}")
+            #print(f"    Desvio padrão: {np.std(scores_array):.4f}")
+            #print(f"    Mínimo: {np.min(scores_array):.4f}")
+            #print(f"    Máximo: {np.max(scores_array):.4f}")
             
-            print(f"\n  📊 Percentis:")
+            #print(f"\n  📊 Percentis:")
             for p in [1, 5, 10, 25, 50, 75, 90, 95, 99]:
-                print(f"    {p}%: {np.percentile(scores_array, p):.4f}")
+                #print(f"    {p}%: {np.percentile(scores_array, p):.4f}")
             
             # Distribuição
             bins = np.linspace(0, 1, 11)
             hist, _ = np.histogram(np.clip(scores_array, 0, 1), bins=bins)
-            print(f"\n  📊 Distribuição (0-1):")
+            #print(f"\n  📊 Distribuição (0-1):")
             for i in range(len(bins)-1):
                 percentage = (hist[i] / len(scores_array)) * 100
                 bar = "█" * int(percentage * 2)
-                print(f"    {bins[i]:.1f}-{bins[i+1]:.1f}: {hist[i]:5d} ({percentage:5.1f}%) {bar}")
+                #print(f"    {bins[i]:.1f}-{bins[i+1]:.1f}: {hist[i]:5d} ({percentage:5.1f}%) {bar}")
             
             return scores_array
             
     except Exception as e:
-        print(f"  ❌ Erro durante análise: {e}")
+        #print(f"  ❌ Erro durante análise: {e}")
         return None
 
 def merge_files_advanced(files: List[str], output_file: str, config: MergeConfig) -> bool:
     """Mescla arquivos com filtros avançados"""
     # (mantido o mesmo código do merge anterior)
     # Por brevidade, mantive a função mas você pode copiar a versão completa do código anterior
-    print("\n⚠️  Função merge_files_advanced - implementar com o código anterior")
+    #print("\n⚠️  Função merge_files_advanced - implementar com o código anterior")
     return False
 
 # ============== FUNÇÃO PRINCIPAL ==============
@@ -377,9 +377,9 @@ def merge_files_advanced(files: List[str], output_file: str, config: MergeConfig
 def main():
     """Função principal com menu interativo"""
     
-    print("="*80)
-    print("🔗 FERRAMENTA DE MERGE NNUE COM DEDUPLICAÇÃO")
-    print("="*80)
+    #print("="*80)
+    #print("🔗 FERRAMENTA DE MERGE NNUE COM DEDUPLICAÇÃO")
+    #print("="*80)
     
     config = MergeConfig()
     
@@ -392,31 +392,31 @@ def main():
     all_files = [f for f in all_files if "merged" not in f.lower() and "backup" not in f.lower()]
     
     if not all_files:
-        print(f"❌ Nenhum arquivo encontrado!")
+        #print(f"❌ Nenhum arquivo encontrado!")
         return
     
-    print(f"\n📂 Arquivos encontrados: {len(all_files)}")
+    #print(f"\n📂 Arquivos encontrados: {len(all_files)}")
     
     output = input(f"\n📁 Arquivo de saída [{config.OUTPUT_FILE}]: ").strip()
     if not output:
         output = config.OUTPUT_FILE
     
     # Menu principal
-    print(f"\n⚙️  Opções:")
-    print(f"  1. Mesclar todos com filtros avançados")
-    print(f"  2. Mesclar sem filtros (apenas merge)")
-    print(f"  3. Analisar duplicatas em um arquivo")
-    print(f"  4. Analisar distribuição de scores")
-    print(f"  5. Configurar filtros")
-    print(f"  6. 🗑️  REMOVER DUPLICATAS DE UM ARQUIVO EXISTENTE")
-    print(f"  7. 🗑️  REMOVER DUPLICATAS DE TODOS OS ARQUIVOS")
-    print(f"  8. Sair")
+    #print(f"\n⚙️  Opções:")
+    #print(f"  1. Mesclar todos com filtros avançados")
+    #print(f"  2. Mesclar sem filtros (apenas merge)")
+    #print(f"  3. Analisar duplicatas em um arquivo")
+    #print(f"  4. Analisar distribuição de scores")
+    #print(f"  5. Configurar filtros")
+    #print(f"  6. 🗑️  REMOVER DUPLICATAS DE UM ARQUIVO EXISTENTE")
+    #print(f"  7. 🗑️  REMOVER DUPLICATAS DE TODOS OS ARQUIVOS")
+    #print(f"  8. Sair")
     
     option = input("\nEscolha: ").strip()
     
     if option == '6':
         # Opção 6: Remover duplicatas de um arquivo existente
-        print("\n📂 Arquivos disponíveis:")
+        #print("\n📂 Arquivos disponíveis:")
         files_for_dedup = sorted(glob.glob("training_data*_prod.bin"))
         files_for_dedup = [f for f in files_for_dedup if "backup" not in f.lower()]
         
@@ -424,11 +424,11 @@ def main():
             try:
                 count, size, valid = read_file_info(f)
                 if valid:
-                    print(f"  {i:2d}. {f:45s} ({count:6,} posições, {size/1024/1024:.2f} MB)")
+                    #print(f"  {i:2d}. {f:45s} ({count:6,} posições, {size/1024/1024:.2f} MB)")
                 else:
-                    print(f"  {i:2d}. {f:45s} (⚠️  inválido)")
+                    #print(f"  {i:2d}. {f:45s} (⚠️  inválido)")
             except:
-                print(f"  {i:2d}. {f:45s}")
+                #print(f"  {i:2d}. {f:45s}")
         
         choice = input("\nNúmero do arquivo ou caminho completo: ").strip()
         
@@ -464,11 +464,11 @@ def main():
         if confirm.lower() == 's':
             deduplicate_all_files()
         else:
-            print("❌ Operação cancelada!")
+            #print("❌ Operação cancelada!")
         return
     
     elif option == '8':
-        print("\n👋 Saindo...")
+        #print("\n👋 Saindo...")
         return
     
     # ... resto do código (opções 1-5 mantidas)

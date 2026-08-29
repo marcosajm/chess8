@@ -107,11 +107,11 @@ class NNUE(nn.Module):
                      Config.NNUE_H2 * Config.NNUE_OUT +
                      Config.NNUE_OUT)
         
-        print(f"Exported {len(flat_array)} floats to {filepath}")
-        print(f"Expected size: {total_size} floats")
+        #print(f"Exported {len(flat_array)} floats to {filepath}")
+        #print(f"Expected size: {total_size} floats")
         
         if len(flat_array) != total_size:
-            print(f"WARNING: Size mismatch! Got {len(flat_array)}, expected {total_size}")
+            #print(f"WARNING: Size mismatch! Got {len(flat_array)}, expected {total_size}")
         
         return flat_array
 
@@ -153,8 +153,8 @@ class DataGenerator:
     def start_engine(self):
         """Start Stockfish engine"""
         if not os.path.exists(self.stockfish_path):
-            print(f"Stockfish not found at {self.stockfish_path}")
-            print("Download from: https://stockfishchess.org/download/")
+            #print(f"Stockfish not found at {self.stockfish_path}")
+            #print("Download from: https://stockfishchess.org/download/")
             raise FileNotFoundError(f"Stockfish executable not found: {self.stockfish_path}")
         
         self.engine = chess.engine.SimpleEngine.popen_uci(self.stockfish_path)
@@ -177,7 +177,7 @@ class DataGenerator:
         # Store original depth for consistent evaluation
         depth_limit = chess.engine.Limit(depth=Config.DEPTH)
         
-        print(f"  Playing game...", end="", flush=True)
+        #print(f"  Playing game...", end="", flush=True)
         
         while not board.is_game_over() and move_count < max_moves:
             # Get evaluation from Stockfish
@@ -206,9 +206,9 @@ class DataGenerator:
             move_count += 1
             
             if move_count % 20 == 0:
-                print(".", end="", flush=True)
+                #print(".", end="", flush=True)
         
-        print(f" done ({move_count} moves)")
+        #print(f" done ({move_count} moves)")
         
         # Determine game result
         result = 0.0
@@ -229,8 +229,8 @@ class DataGenerator:
     def generate_data(self, num_games: int = Config.NUM_GAMES, 
                       output_file: str = Config.DATA_FILE):
         """Generate and save training data"""
-        print(f"Generating {num_games} self-play games at depth {Config.DEPTH}...")
-        print(f"Using Stockfish from: {self.stockfish_path}")
+        #print(f"Generating {num_games} self-play games at depth {Config.DEPTH}...")
+        #print(f"Using Stockfish from: {self.stockfish_path}")
         
         self.start_engine()
         
@@ -250,20 +250,20 @@ class DataGenerator:
                 if (game_idx + 1) % 100 == 0:
                     elapsed = time.time() - start_time
                     avg_positions = len(all_positions) // (game_idx + 1)
-                    print(f"Game {game_idx + 1}/{num_games} completed. "
+                    #print(f"Game {game_idx + 1}/{num_games} completed. "
                           f"Total positions: {len(all_positions)} "
                           f"({avg_positions} avg/game) "
                           f"Time: {elapsed/60:.1f} min")
                           
             except Exception as e:
-                print(f"Error in game {game_idx}: {e}")
+                #print(f"Error in game {game_idx}: {e}")
                 continue
         
         self.stop_engine()
         
         # Save data
         self._save_data(all_positions, output_file)
-        print(f"Generated {len(all_positions)} positions from {num_games} games")
+        #print(f"Generated {len(all_positions)} positions from {num_games} games")
         return all_positions
     
     def _get_openings(self) -> List[str]:
@@ -291,9 +291,9 @@ class DataGenerator:
                 # Write score and result as floats
                 f.write(struct.pack('ff', pos.score, pos.result))
         
-        print(f"Saved {len(positions)} positions to {filename}")
+        #print(f"Saved {len(positions)} positions to {filename}")
         file_size = os.path.getsize(filename) / (1024 * 1024)
-        print(f"File size: {file_size:.2f} MB")
+        #print(f"File size: {file_size:.2f} MB")
 
 # ============== Dataset Class ==============
 class NNUE_Dataset(Dataset):
@@ -306,7 +306,7 @@ class NNUE_Dataset(Dataset):
         self._load_data(data_file)
     
     def _load_data(self, filename: str):
-        print(f"Loading training data from {filename}...")
+        #print(f"Loading training data from {filename}...")
         
         with open(filename, 'rb') as f:
             # Read header
@@ -314,12 +314,12 @@ class NNUE_Dataset(Dataset):
             if magic != b'NNUE':
                 raise ValueError(f"Invalid file format: expected 'NNUE', got {magic}")
             
-            print(f"Found {count} positions")
+            #print(f"Found {count} positions")
             
             # Read data in chunks for memory efficiency
             for i in range(count):
                 if i % 100000 == 0 and i > 0:
-                    print(f"  Loaded {i} positions...")
+                    #print(f"  Loaded {i} positions...")
                 
                 # Read features
                 feat_data = f.read(Config.NNUE_INPUT_DIM * 4)
@@ -331,7 +331,7 @@ class NNUE_Dataset(Dataset):
                 self.scores.append(score)
                 self.results.append(result)
         
-        print(f"Loaded {len(self.features)} positions")
+        #print(f"Loaded {len(self.features)} positions")
     
     def __len__(self):
         return len(self.features)
@@ -349,7 +349,7 @@ def train_model(model: NNUE, train_loader: DataLoader,
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = model.to(device)
-    print(f"Using device: {device}")
+    #print(f"Using device: {device}")
     
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-5)
     criterion = nn.MSELoss()
@@ -365,9 +365,9 @@ def train_model(model: NNUE, train_loader: DataLoader,
     
     best_val_loss = float('inf')
     
-    print(f"Starting training for {epochs} epochs...")
-    print(f"Training samples: {len(train_loader.dataset)}")
-    print(f"Validation samples: {len(val_features)}")
+    #print(f"Starting training for {epochs} epochs...")
+    #print(f"Training samples: {len(train_loader.dataset)}")
+    #print(f"Validation samples: {len(val_features)}")
     
     start_time = time.time()
     
@@ -398,7 +398,7 @@ def train_model(model: NNUE, train_loader: DataLoader,
             batch_count += 1
             
             if batch_idx % 100 == 0:
-                print(f"  Epoch {epoch+1}/{epochs}, Batch {batch_idx}, Loss: {loss.item():.4f}")
+                #print(f"  Epoch {epoch+1}/{epochs}, Batch {batch_idx}, Loss: {loss.item():.4f}")
         
         avg_train_loss = train_loss / batch_count
         
@@ -412,7 +412,7 @@ def train_model(model: NNUE, train_loader: DataLoader,
         scheduler.step(val_loss)
         
         elapsed = time.time() - start_time
-        print(f"Epoch {epoch+1}/{epochs} - "
+        #print(f"Epoch {epoch+1}/{epochs} - "
               f"Train Loss: {avg_train_loss:.6f}, "
               f"Val Loss: {val_loss:.6f}, "
               f"LR: {optimizer.param_groups[0]['lr']:.6f}, "
@@ -422,37 +422,37 @@ def train_model(model: NNUE, train_loader: DataLoader,
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             torch.save(model.state_dict(), Config.MODEL_FILE)
-            print(f"  New best model saved to {Config.MODEL_FILE} (val loss: {val_loss:.6f})")
+            #print(f"  New best model saved to {Config.MODEL_FILE} (val loss: {val_loss:.6f})")
     
     # Load best model
     model.load_state_dict(torch.load(Config.MODEL_FILE))
-    print(f"Training completed! Best validation loss: {best_val_loss:.6f}")
+    #print(f"Training completed! Best validation loss: {best_val_loss:.6f}")
     
     return model
 
 # ============== Main Pipeline ==============
 def main():
     """Complete training pipeline"""
-    print("=" * 60)
-    print("NNUE Training Pipeline")
-    print("=" * 60)
+    #print("=" * 60)
+    #print("NNUE Training Pipeline")
+    #print("=" * 60)
     
     # Step 1: Generate data
-    print("\n[Step 1] Generating training data...")
+    #print("\n[Step 1] Generating training data...")
     generator = DataGenerator()
     
     if os.path.exists(Config.DATA_FILE):
-        print(f"Data file {Config.DATA_FILE} already exists.")
+        #print(f"Data file {Config.DATA_FILE} already exists.")
         response = input("Skip data generation? (y/n): ")
         if response.lower() == 'y':
-            print("Skipping data generation...")
+            #print("Skipping data generation...")
         else:
             generator.generate_data()
     else:
         generator.generate_data()
     
     # Step 2: Load and prepare data
-    print("\n[Step 2] Loading and preparing data...")
+    #print("\n[Step 2] Loading and preparing data...")
     dataset = NNUE_Dataset(Config.DATA_FILE)
     
     # Split into train and validation
@@ -483,35 +483,35 @@ def main():
         pin_memory=torch.cuda.is_available()
     )
     
-    print(f"Training samples: {len(train_dataset)}")
-    print(f"Validation samples: {len(val_dataset)}")
+    #print(f"Training samples: {len(train_dataset)}")
+    #print(f"Validation samples: {len(val_dataset)}")
     
     # Step 3: Create and train model
-    print("\n[Step 3] Training model...")
+    #print("\n[Step 3] Training model...")
     model = NNUE()
     
-    # Print model architecture
-    print(f"Model architecture:")
-    print(f"  Input: {Config.NNUE_INPUT_DIM}")
-    print(f"  Hidden1: {Config.NNUE_H1}")
-    print(f"  Hidden2: {Config.NNUE_H2}")
-    print(f"  Output: 1")
-    print(f"  Total parameters: {sum(p.numel() for p in model.parameters()):,}")
+    # #print model architecture
+    #print(f"Model architecture:")
+    #print(f"  Input: {Config.NNUE_INPUT_DIM}")
+    #print(f"  Hidden1: {Config.NNUE_H1}")
+    #print(f"  Hidden2: {Config.NNUE_H2}")
+    #print(f"  Output: 1")
+    #print(f"  Total parameters: {sum(p.numel() for p in model.parameters()):,}")
     
     model = train_model(model, train_loader, val_features, val_scores)
     
     # Step 4: Export weights
-    print("\n[Step 4] Exporting weights to .bin file...")
+    #print("\n[Step 4] Exporting weights to .bin file...")
     model.export_weights(Config.WEIGHTS_FILE)
     
     # Step 5: Verify exported file
-    print("\n[Step 5] Verifying exported weights...")
+    #print("\n[Step 5] Verifying exported weights...")
     verify_exported_weights()
     
-    print("\n" + "=" * 60)
-    print("Training pipeline completed successfully!")
-    print(f"Your C code can now load weights from: {Config.WEIGHTS_FILE}")
-    print("=" * 60)
+    #print("\n" + "=" * 60)
+    #print("Training pipeline completed successfully!")
+    #print(f"Your C code can now load weights from: {Config.WEIGHTS_FILE}")
+    #print("=" * 60)
 
 def verify_exported_weights():
     """Verify that the exported weights file is correct"""
@@ -524,22 +524,22 @@ def verify_exported_weights():
                         Config.NNUE_H2 * Config.NNUE_OUT +
                         Config.NNUE_OUT) * 4
         
-        print(f"File: {Config.WEIGHTS_FILE}")
-        print(f"  Size: {file_size:,} bytes")
-        print(f"  Expected: {expected_size:,} bytes")
+        #print(f"File: {Config.WEIGHTS_FILE}")
+        #print(f"  Size: {file_size:,} bytes")
+        #print(f"  Expected: {expected_size:,} bytes")
         
         if file_size == expected_size:
-            print("  ✅ File size matches expected size")
+            #print("  ✅ File size matches expected size")
         else:
-            print("  ⚠️ File size mismatch!")
+            #print("  ⚠️ File size mismatch!")
             
     except Exception as e:
-        print(f"Error verifying file: {e}")
+        #print(f"Error verifying file: {e}")
 
 # ============== Quick Test ==============
 def test_loading():
     """Test loading the exported weights in C-like format"""
-    print("\nTesting loading of exported weights...")
+    #print("\nTesting loading of exported weights...")
     
     try:
         # Read weights
@@ -572,16 +572,16 @@ def test_loading():
         
         b3 = weights[offset:offset + b3_size]
         
-        print("  ✅ Successfully loaded and parsed weights")
-        print(f"  w1 shape: {w1.shape}")
-        print(f"  b1 shape: {b1.shape}")
-        print(f"  w2 shape: {w2.shape}")
-        print(f"  b2 shape: {b2.shape}")
-        print(f"  w3 shape: {w3.shape}")
-        print(f"  b3 shape: {b3.shape}")
+        #print("  ✅ Successfully loaded and parsed weights")
+        #print(f"  w1 shape: {w1.shape}")
+        #print(f"  b1 shape: {b1.shape}")
+        #print(f"  w2 shape: {w2.shape}")
+        #print(f"  b2 shape: {b2.shape}")
+        #print(f"  w3 shape: {w3.shape}")
+        #print(f"  b3 shape: {b3.shape}")
         
     except Exception as e:
-        print(f"Error testing weights: {e}")
+        #print(f"Error testing weights: {e}")
 
 if __name__ == "__main__":
     # Run the pipeline

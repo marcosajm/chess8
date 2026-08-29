@@ -38,20 +38,20 @@ class NNUEVisualizer:
     
     def load_data(self):
         """Load and parse the NNUE training data file."""
-        print(f"📊 Loading data from: {self.data_file}")
+        #print(f"📊 Loading data from: {self.data_file}")
         
         try:
             with open(self.data_file, 'rb') as f:
                 # Read header
                 header = f.read(8)
                 if len(header) < 8:
-                    print("❌ Invalid file format: Header too short")
+                    #print("❌ Invalid file format: Header too short")
                     return
                 
                 magic = header[:4].decode('utf-8', errors='ignore')
                 num_positions = struct.unpack('I', header[4:8])[0]
                 
-                print(f"  Magic: {magic}, Positions: {num_positions}")
+                #print(f"  Magic: {magic}, Positions: {num_positions}")
                 
                 # Read all positions
                 for i in range(num_positions):
@@ -75,23 +75,23 @@ class NNUEVisualizer:
                     self.tactical_scores.append(tactical_score)
                     
                     if (i + 1) % 50000 == 0:
-                        print(f"  Loaded {i+1} positions...")
+                        #print(f"  Loaded {i+1} positions...")
             
-            print(f"✅ Loaded {len(self.scores)} positions successfully")
+            #print(f"✅ Loaded {len(self.scores)} positions successfully")
             
         except Exception as e:
-            print(f"❌ Error loading data: {e}")
+            #print(f"❌ Error loading data: {e}")
             raise
     
     def create_dashboard(self, output_dir='nnue_visualizations2'):
         """Create a comprehensive dashboard with multiple plots."""
         if not self.scores:
-            print("❌ No data loaded!")
+            #print("❌ No data loaded!")
             return
         
         os.makedirs(output_dir, exist_ok=True)
         
-        print("\n🎨 Creating visualization dashboard...")
+        #print("\n🎨 Creating visualization dashboard...")
         
         # 1. Score Distribution
         self.plot_score_distribution(output_dir)
@@ -123,11 +123,11 @@ class NNUEVisualizer:
         # 10. Correlation Matrix
         self.plot_correlation_matrix(output_dir)
         
-        print(f"\n✅ All visualizations saved to: {output_dir}/")
-        print("📁 Files created:")
+        #print(f"\n✅ All visualizations saved to: {output_dir}/")
+        #print("📁 Files created:")
         for f in os.listdir(output_dir):
             if f.endswith('.png'):
-                print(f"  - {f}")
+                #print(f"  - {f}")
     
     def plot_score_distribution(self, output_dir):
         """Plot distribution of evaluation scores."""
@@ -358,7 +358,7 @@ class NNUEVisualizer:
             plt.close()
             
         except Exception as e:
-            print(f"⚠️  Feature heatmap could not be created: {e}")
+            #print(f"⚠️  Feature heatmap could not be created: {e}")
             # Create a simple heatmap of feature correlations
             self._create_simple_feature_heatmap(output_dir)
     
@@ -527,7 +527,7 @@ class NNUEVisualizer:
             plt.close()
             
         except Exception as e:
-            print(f"⚠️  3D plot could not be created: {e}")
+            #print(f"⚠️  3D plot could not be created: {e}")
     
     def plot_feature_importance(self, output_dir):
         """Plot feature importance using correlation with scores."""
@@ -586,7 +586,7 @@ class NNUEVisualizer:
             plt.close()
             
         except Exception as e:
-            print(f"⚠️  Feature importance plot could not be created: {e}")
+            #print(f"⚠️  Feature importance plot could not be created: {e}")
     
     def plot_correlation_matrix(self, output_dir):
         """Plot correlation matrix between score, tactical, and result."""
@@ -632,27 +632,27 @@ def main():
     
     args = parser.parse_args()
     
-    print("🎨 NNUE Data Visualization Tool")
-    print("=" * 50)
+    #print("🎨 NNUE Data Visualization Tool")
+    #print("=" * 50)
     
     if not os.path.exists(args.file):
-        print(f"❌ File not found: {args.file}")
-        print("📁 Available .bin files in current directory:")
+        #print(f"❌ File not found: {args.file}")
+        #print("📁 Available .bin files in current directory:")
         for f in os.listdir('.'):
             if f.endswith('.bin'):
-                print(f"  - {f}")
+                #print(f"  - {f}")
         return
     
     try:
         visualizer = NNUEVisualizer(args.file)
         visualizer.create_dashboard(args.output)
-        print(f"\n✨ Visualizations complete!")
-        print(f"📁 Check the '{args.output}' directory for all plots.")
+        #print(f"\n✨ Visualizations complete!")
+        #print(f"📁 Check the '{args.output}' directory for all plots.")
         
     except Exception as e:
-        print(f"❌ Error: {e}")
+        #print(f"❌ Error: {e}")
         import traceback
-        traceback.print_exc()
+        traceback.#print_exc()
 
 
 if __name__ == "__main__":

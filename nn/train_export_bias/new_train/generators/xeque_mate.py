@@ -182,19 +182,19 @@ class GeradorXequeMateAvancado:
     
     def gerar_todas_posicoes(self):
         """Gera todas as posições de xeque-mate"""
-        print(f"\n{'='*60}")
-        print(f"GERADOR DE XEQUE-MATE (VERSÃO AVANÇADA)")
-        print(f"{'='*60}")
-        print(f"Posições: {self.num_posicoes}")
-        print(f"Peças extras: {self.pecas_extras}")
-        print(f"{'='*60}\n")
+        #print(f"\n{'='*60}")
+        #print(f"GERADOR DE XEQUE-MATE (VERSÃO AVANÇADA)")
+        #print(f"{'='*60}")
+        #print(f"Posições: {self.num_posicoes}")
+        #print(f"Peças extras: {self.pecas_extras}")
+        #print(f"{'='*60}\n")
         
         for i in range(self.num_posicoes):
-            print(f"\n--- Posição {i+1}/{self.num_posicoes} ---")
+            #print(f"\n--- Posição {i+1}/{self.num_posicoes} ---")
             
             # Gera posição base
             board, desc = self.gerar_posicao_base()
-            print(f"Base: {desc}")
+            #print(f"Base: {desc}")
             
             # Adiciona peças extras
             board_final, adicionadas = self.adicionar_pecas_inteligente(board, self.pecas_extras)
@@ -207,7 +207,7 @@ class GeradorXequeMateAvancado:
             
             # Verifica se é repetida
             if fen_atual in self.fens_gerados:
-                print("⚠ Posição repetida! Regenerando...")
+                #print("⚠ Posição repetida! Regenerando...")
                 # Tenta novamente com uma base diferente
                 board, desc = self.gerar_posicao_base()
                 board_final, adicionadas = self.adicionar_pecas_inteligente(board, self.pecas_extras)
@@ -238,29 +238,29 @@ class GeradorXequeMateAvancado:
                 self.posicoes_geradas.append(posicao)
                 
                 # Mostra resultado
-                print(f"✅ XEQUE-MATE VÁLIDO | Peças: {total_pecas}")
+                #print(f"✅ XEQUE-MATE VÁLIDO | Peças: {total_pecas}")
             else:
-                print(f"❌ Posição inválida (não é mate) - ignorando")
+                #print(f"❌ Posição inválida (não é mate) - ignorando")
                 # Mostra diagnóstico
                 rei_preto = board_final.king(chess.BLACK)
                 if rei_preto:
-                    print(f"Rei preto em: {chess.square_name(rei_preto)}")
-                    print(f"Em xeque: {em_xeque}")
+                    #print(f"Rei preto em: {chess.square_name(rei_preto)}")
+                    #print(f"Em xeque: {em_xeque}")
                     if not em_xeque:
-                        print("❌ Rei NÃO está em xeque!")
+                        #print("❌ Rei NÃO está em xeque!")
                     else:
-                        print("✅ Rei está em xeque, mas não é mate")
+                        #print("✅ Rei está em xeque, mas não é mate")
             
             # Mostra o tabuleiro sempre
             self._mostrar_tabuleiro(board_final)
-            print(f"FEN: {fen_atual}")
+            #print(f"FEN: {fen_atual}")
             
             # Mostra análise detalhada
             rei_preto = board_final.king(chess.BLACK)
             if rei_preto:
                 atacantes = board_final.attackers(chess.WHITE, rei_preto)
                 if atacantes:
-                    print(f"Atacado por: {', '.join(chess.square_name(sq) for sq in atacantes)}")
+                    #print(f"Atacado por: {', '.join(chess.square_name(sq) for sq in atacantes)}")
                 
                 # Mostra casas de fuga
                 casas_fuga = []
@@ -269,9 +269,9 @@ class GeradorXequeMateAvancado:
                         casas_fuga.append(chess.square_name(move.to_square))
                 
                 if casas_fuga:
-                    print(f"⚠ Casas de fuga: {', '.join(casas_fuga)}")
+                    #print(f"⚠ Casas de fuga: {', '.join(casas_fuga)}")
                 else:
-                    print("✅ Sem casas de fuga!")
+                    #print("✅ Sem casas de fuga!")
         
         # Calcula médias
         if self.estatisticas['validas'] > 0:
@@ -283,22 +283,22 @@ class GeradorXequeMateAvancado:
     
     def _mostrar_tabuleiro(self, board):
         """Mostra o tabuleiro formatado"""
-        print("  +---+---+---+---+---+---+---+---+")
+        #print("  +---+---+---+---+---+---+---+---+")
         for rank in range(7, -1, -1):
-            print(f"{rank+1} |", end="")
+            #print(f"{rank+1} |", end="")
             for file in range(8):
                 square = chess.square(file, rank)
                 piece = board.piece_at(square)
                 if piece:
                     symbol = piece.symbol()
                     if piece.color == chess.WHITE:
-                        print(f" {symbol} |", end="")
+                        #print(f" {symbol} |", end="")
                     else:
-                        print(f" {symbol.lower()} |", end="")
+                        #print(f" {symbol.lower()} |", end="")
                 else:
-                    print("   |", end="")
-            print("\n  +---+---+---+---+---+---+---+---+")
-        print("    a   b   c   d   e   f   g   h")
+                    #print("   |", end="")
+            #print("\n  +---+---+---+---+---+---+---+---+")
+        #print("    a   b   c   d   e   f   g   h")
     
     def salvar_stockfish(self, nome_arquivo=None):
         """Salva posições no formato Stockfish"""
@@ -325,7 +325,7 @@ class GeradorXequeMateAvancado:
                     f.write(f"# go depth 20\n")
                     f.write("# ---\n")
         
-        print(f"\n✓ Salvo: {nome_arquivo}")
+        #print(f"\n✓ Salvo: {nome_arquivo}")
         return nome_arquivo
     
     def salvar_json(self, nome_arquivo=None):
@@ -349,7 +349,7 @@ class GeradorXequeMateAvancado:
         with open(nome_arquivo, 'w') as f:
             json.dump(dados, f, indent=2, ensure_ascii=False)
         
-        print(f"✓ Salvo: {nome_arquivo}")
+        #print(f"✓ Salvo: {nome_arquivo}")
         return nome_arquivo
     
     def salvar_apenas_validas(self, nome_arquivo=None):
@@ -368,19 +368,19 @@ class GeradorXequeMateAvancado:
             for pos in validas:
                 f.write(f"{pos['fen']}\n")
         
-        print(f"✓ Salvo (somente válidas): {nome_arquivo}")
+        #print(f"✓ Salvo (somente válidas): {nome_arquivo}")
         return nome_arquivo
     
     def resumo(self):
         """Mostra resumo final"""
-        print("\n" + "="*60)
-        print("RESUMO FINAL")
-        print("="*60)
-        print(f"Total de posições válidas geradas: {self.estatisticas['validas']}")
-        print(f"Média de peças: {self.estatisticas['media_pecas']:.1f}")
-        print(f"Mínimo de peças: {self.estatisticas['min_pecas'] if self.estatisticas['min_pecas'] != float('inf') else 0}")
-        print(f"Máximo de peças: {self.estatisticas['max_pecas']}")
-        print("="*60)
+        #print("\n" + "="*60)
+        #print("RESUMO FINAL")
+        #print("="*60)
+        #print(f"Total de posições válidas geradas: {self.estatisticas['validas']}")
+        #print(f"Média de peças: {self.estatisticas['media_pecas']:.1f}")
+        #print(f"Mínimo de peças: {self.estatisticas['min_pecas'] if self.estatisticas['min_pecas'] != float('inf') else 0}")
+        #print(f"Máximo de peças: {self.estatisticas['max_pecas']}")
+        #print("="*60)
 
 
 # ============================================
@@ -392,12 +392,12 @@ if __name__ == "__main__":
     NUM_POSICOES = 10
     PECAS_EXTRAS = 5
     
-    print("="*60)
-    print("GERADOR DE XEQUE-MATE")
-    print("="*60)
-    print(f"Posições: {NUM_POSICOES}")
-    print(f"Peças extras: {PECAS_EXTRAS}")
-    print("="*60)
+    #print("="*60)
+    #print("GERADOR DE XEQUE-MATE")
+    #print("="*60)
+    #print(f"Posições: {NUM_POSICOES}")
+    #print(f"Peças extras: {PECAS_EXTRAS}")
+    #print("="*60)
     
     # Cria gerador
     gerador = GeradorXequeMateAvancado(NUM_POSICOES, PECAS_EXTRAS)
@@ -406,9 +406,9 @@ if __name__ == "__main__":
     posicoes, stats = gerador.gerar_todas_posicoes()
     
     # Salva em diferentes formatos
-    print("\n" + "="*60)
-    print("SALVANDO ARQUIVOS...")
-    print("="*60)
+    #print("\n" + "="*60)
+    #print("SALVANDO ARQUIVOS...")
+    #print("="*60)
     
     arquivo_txt = gerador.salvar_stockfish()
     arquivo_json = gerador.salvar_json()
@@ -417,4 +417,4 @@ if __name__ == "__main__":
     # Mostra resumo
     gerador.resumo()
     
-    print("\n✓ CONCLUÍDO!")
+    #print("\n✓ CONCLUÍDO!")

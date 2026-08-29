@@ -202,19 +202,19 @@ class GeradorXequeMateAvancado:
     
     def gerar_todas_posicoes(self):
         """Gera todas as posições de xeque-mate"""
-        print(f"\n{'='*60}")
-        print(f"GERADOR DE XEQUE-MATE (VERSÃO AVANÇADA)")
-        print(f"{'='*60}")
-        print(f"Posições: {self.num_posicoes}")
-        print(f"Peças extras: {self.pecas_extras}")
-        print(f"{'='*60}\n")
+        #print(f"\n{'='*60}")
+        #print(f"GERADOR DE XEQUE-MATE (VERSÃO AVANÇADA)")
+        #print(f"{'='*60}")
+        #print(f"Posições: {self.num_posicoes}")
+        #print(f"Peças extras: {self.pecas_extras}")
+        #print(f"{'='*60}\n")
         
         for i in range(self.num_posicoes):
-            print(f"\n--- Posição {i+1}/{self.num_posicoes} ---")
+            #print(f"\n--- Posição {i+1}/{self.num_posicoes} ---")
             
             # Gera posição base
             board, desc = self.gerar_posicao_base()
-            print(f"Base: {desc}")
+            #print(f"Base: {desc}")
             
             # Adiciona peças extras de forma inteligente
             board_final, adicionadas = self.adicionar_pecas_inteligente(board, self.pecas_extras)
@@ -225,7 +225,7 @@ class GeradorXequeMateAvancado:
             # Verifica se é uma posição nova
             fen_atual = board_final.fen()
             if fen_atual in self.fens_gerados:
-                print("⚠ Posição repetida! Recriando...")
+                #print("⚠ Posição repetida! Recriando...")
                 # Tenta novamente
                 board_final, adicionadas = self.adicionar_pecas_inteligente(board, self.pecas_extras)
                 fen_atual = board_final.fen()
@@ -254,24 +254,24 @@ class GeradorXequeMateAvancado:
             
             # Mostra resultado
             status = "✓" if e_mate else "✗"
-            print(f"{status} Xeque-mate: {e_mate} | Peças: {total_pecas}")
+            #print(f"{status} Xeque-mate: {e_mate} | Peças: {total_pecas}")
             self._mostrar_tabuleiro(board_final)
-            print(f"FEN: {fen_atual}")
+            #print(f"FEN: {fen_atual}")
             
             # Se não for mate, mostra debug
             if not e_mate:
                 rei_preto = board_final.king(chess.BLACK)
                 if rei_preto:
-                    print(f"Rei preto em: {chess.square_name(rei_preto)}")
+                    #print(f"Rei preto em: {chess.square_name(rei_preto)}")
                     # Mostra casas de fuga
                     casas_fuga = []
                     for move in board_final.legal_moves:
                         if board_final.piece_at(move.to_square) and board_final.piece_at(move.to_square).piece_type == chess.KING:
                             casas_fuga.append(chess.square_name(move.to_square))
                     if casas_fuga:
-                        print(f"⚠ Casas de fuga: {', '.join(casas_fuga)}")
+                        #print(f"⚠ Casas de fuga: {', '.join(casas_fuga)}")
                     else:
-                        print("✓ Rei sem casas de fuga!")
+                        #print("✓ Rei sem casas de fuga!")
         
         # Calcula médias
         if self.estatisticas['validas'] > 0:
@@ -283,22 +283,22 @@ class GeradorXequeMateAvancado:
     
     def _mostrar_tabuleiro(self, board):
         """Mostra o tabuleiro formatado"""
-        print("  +---+---+---+---+---+---+---+---+")
+        #print("  +---+---+---+---+---+---+---+---+")
         for rank in range(7, -1, -1):
-            print(f"{rank+1} |", end="")
+            #print(f"{rank+1} |", end="")
             for file in range(8):
                 square = chess.square(file, rank)
                 piece = board.piece_at(square)
                 if piece:
                     symbol = piece.symbol()
                     if piece.color == chess.WHITE:
-                        print(f" {symbol} |", end="")
+                        #print(f" {symbol} |", end="")
                     else:
-                        print(f" {symbol.lower()} |", end="")
+                        #print(f" {symbol.lower()} |", end="")
                 else:
-                    print("   |", end="")
-            print("\n  +---+---+---+---+---+---+---+---+")
-        print("    a   b   c   d   e   f   g   h")
+                    #print("   |", end="")
+            #print("\n  +---+---+---+---+---+---+---+---+")
+        #print("    a   b   c   d   e   f   g   h")
     
     def salvar_stockfish(self, nome_arquivo=None):
         """Salva posições no formato Stockfish"""
@@ -325,7 +325,7 @@ class GeradorXequeMateAvancado:
                     f.write(f"# go depth 20\n")
                     f.write("# ---\n")
         
-        print(f"\n✓ Salvo: {nome_arquivo}")
+        #print(f"\n✓ Salvo: {nome_arquivo}")
         return nome_arquivo
     
     def salvar_json(self, nome_arquivo=None):
@@ -349,7 +349,7 @@ class GeradorXequeMateAvancado:
         with open(nome_arquivo, 'w') as f:
             json.dump(dados, f, indent=2, ensure_ascii=False)
         
-        print(f"✓ Salvo: {nome_arquivo}")
+        #print(f"✓ Salvo: {nome_arquivo}")
         return nome_arquivo
     
     def salvar_apenas_validas(self, nome_arquivo=None):
@@ -368,22 +368,22 @@ class GeradorXequeMateAvancado:
             for pos in validas:
                 f.write(f"{pos['fen']}\n")
         
-        print(f"✓ Salvo (somente válidas): {nome_arquivo}")
+        #print(f"✓ Salvo (somente válidas): {nome_arquivo}")
         return nome_arquivo
     
     def resumo(self):
         """Mostra resumo final"""
-        print("\n" + "="*60)
-        print("RESUMO FINAL")
-        print("="*60)
-        print(f"Total: {self.estatisticas['total']}")
-        print(f"Válidas: {self.estatisticas['validas']}")
+        #print("\n" + "="*60)
+        #print("RESUMO FINAL")
+        #print("="*60)
+        #print(f"Total: {self.estatisticas['total']}")
+        #print(f"Válidas: {self.estatisticas['validas']}")
         if self.estatisticas['total'] > 0:
-            print(f"Taxa: {self.estatisticas['validas']/self.estatisticas['total']*100:.1f}%")
-        print(f"Média de peças: {self.estatisticas['media_pecas']:.1f}")
-        print(f"Mínimo: {self.estatisticas['min_pecas']}")
-        print(f"Máximo: {self.estatisticas['max_pecas']}")
-        print("="*60)
+            #print(f"Taxa: {self.estatisticas['validas']/self.estatisticas['total']*100:.1f}%")
+        #print(f"Média de peças: {self.estatisticas['media_pecas']:.1f}")
+        #print(f"Mínimo: {self.estatisticas['min_pecas']}")
+        #print(f"Máximo: {self.estatisticas['max_pecas']}")
+        #print("="*60)
 
 
 # ============================================
@@ -402,9 +402,9 @@ if __name__ == "__main__":
     posicoes, stats = gerador.gerar_todas_posicoes()
     
     # Salva em diferentes formatos
-    print("\n" + "="*60)
-    print("SALVANDO ARQUIVOS...")
-    print("="*60)
+    #print("\n" + "="*60)
+    #print("SALVANDO ARQUIVOS...")
+    #print("="*60)
     
     arquivo_txt = gerador.salvar_stockfish()
     arquivo_json = gerador.salvar_json()
@@ -414,13 +414,13 @@ if __name__ == "__main__":
     gerador.resumo()
     
     # Mostra exemplo de uso
-    print("\n" + "="*60)
-    print("COMO USAR COM STOCKFISH")
-    print("="*60)
+    #print("\n" + "="*60)
+    #print("COMO USAR COM STOCKFISH")
+    #print("="*60)
     if posicoes and any(p['is_checkmate'] for p in posicoes):
         primeira_valida = next(p for p in posicoes if p['is_checkmate'])
-        print(f"stockfish")
-        print(f"position fen {primeira_valida['fen']}")
-        print(f"go depth 20")
+        #print(f"stockfish")
+        #print(f"position fen {primeira_valida['fen']}")
+        #print(f"go depth 20")
     
-    print("\n✓ CONCLUÍDO!")
+    #print("\n✓ CONCLUÍDO!")

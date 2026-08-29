@@ -47,7 +47,7 @@ def read_file_info(filename: str) -> Tuple[int, int, bool]:
             magic, count = struct.unpack('4sI', f.read(8))
             
             if magic != b'NNUE':
-                print(f"  ⚠️  Magic number inválido: {filename}")
+                #print(f"  ⚠️  Magic number inválido: {filename}")
                 return 0, 0, False
             
             # Verifica se o arquivo tem o tamanho correto
@@ -55,14 +55,14 @@ def read_file_info(filename: str) -> Tuple[int, int, bool]:
             actual_size = os.path.getsize(filename)
             
             if actual_size != expected_size:
-                print(f"  ⚠️  Tamanho incorreto: {filename}")
-                print(f"     Esperado: {expected_size}, Atual: {actual_size}")
+                #print(f"  ⚠️  Tamanho incorreto: {filename}")
+                #print(f"     Esperado: {expected_size}, Atual: {actual_size}")
                 return count, actual_size, False
             
             return count, actual_size, True
             
     except Exception as e:
-        print(f"  ❌ Erro ao ler {filename}: {e}")
+        #print(f"  ❌ Erro ao ler {filename}: {e}")
         return 0, 0, False
 
 def merge_files(files: List[str], output_file: str, 
@@ -77,18 +77,18 @@ def merge_files(files: List[str], output_file: str,
         backup: Criar backup do arquivo de saída se existir
     """
     
-    print("\n" + "="*80)
-    print("🔗 MERGE DE ARQUIVOS NNUE")
-    print("="*80)
+    #print("\n" + "="*80)
+    #print("🔗 MERGE DE ARQUIVOS NNUE")
+    #print("="*80)
     
     # Filtra apenas arquivos existentes
     files = [f for f in files if os.path.exists(f)]
     
     if not files:
-        print("❌ Nenhum arquivo encontrado!")
+        #print("❌ Nenhum arquivo encontrado!")
         return False
     
-    print(f"\n📂 Encontrados {len(files)} arquivos:")
+    #print(f"\n📂 Encontrados {len(files)} arquivos:")
     
     # Lê informações de cada arquivo
     file_info = []
@@ -98,11 +98,11 @@ def merge_files(files: List[str], output_file: str,
         count, size, valid = read_file_info(file)
         
         if not valid and verify:
-            print(f"  ❌ Arquivo inválido: {file}")
+            #print(f"  ❌ Arquivo inválido: {file}")
             return False
         
         if count == 0:
-            print(f"  ⚠️  Arquivo vazio: {file}")
+            #print(f"  ⚠️  Arquivo vazio: {file}")
             continue
         
         file_info.append({
@@ -113,29 +113,29 @@ def merge_files(files: List[str], output_file: str,
         })
         
         total_positions += count
-        print(f"  {i+1:2d}. {os.path.basename(file):30s} - {count:6,} posições ({size/1024/1024:.2f} MB)")
+        #print(f"  {i+1:2d}. {os.path.basename(file):30s} - {count:6,} posições ({size/1024/1024:.2f} MB)")
     
     if not file_info:
-        print("❌ Nenhum arquivo válido encontrado!")
+        #print("❌ Nenhum arquivo válido encontrado!")
         return False
     
-    print(f"\n📊 Total de posições: {total_positions:,}")
-    print(f"📊 Tamanho estimado: {total_positions * (780*4 + 12) / 1024 / 1024:.2f} MB")
+    #print(f"\n📊 Total de posições: {total_positions:,}")
+    #print(f"📊 Tamanho estimado: {total_positions * (780*4 + 12) / 1024 / 1024:.2f} MB")
     
     # Verifica se o arquivo de saída existe
     if os.path.exists(output_file):
         if backup:
             backup_file = output_file + ".backup"
-            print(f"\n💾 Criando backup: {backup_file}")
+            #print(f"\n💾 Criando backup: {backup_file}")
             shutil.copy2(output_file, backup_file)
         
         response = input(f"\n⚠️  Arquivo {output_file} já existe. Sobrescrever? (s/N): ")
         if response.lower() != 's':
-            print("❌ Operação cancelada!")
+            #print("❌ Operação cancelada!")
             return False
     
     # Mescla os arquivos
-    print(f"\n🚀 Mesclando {len(file_info)} arquivos...")
+    #print(f"\n🚀 Mesclando {len(file_info)} arquivos...")
     start_time = time.time()
     
     try:
@@ -148,7 +148,7 @@ def merge_files(files: List[str], output_file: str,
             
             # Para cada arquivo
             for info in file_info:
-                print(f"  📖 Processando: {os.path.basename(info['file'])}")
+                #print(f"  📖 Processando: {os.path.basename(info['file'])}")
                 
                 with open(info['file'], 'rb') as in_f:
                     # Pula cabeçalho do arquivo de entrada
@@ -159,13 +159,13 @@ def merge_files(files: List[str], output_file: str,
                         # Lê features (780 floats = 3120 bytes)
                         feat_data = in_f.read(780 * 4)
                         if len(feat_data) < 780 * 4:
-                            print(f"    ⚠️  Erro ao ler posição {pos_idx}")
+                            #print(f"    ⚠️  Erro ao ler posição {pos_idx}")
                             break
                         
                         # Lê scores (3 floats = 12 bytes)
                         score_data = in_f.read(12)
                         if len(score_data) < 12:
-                            print(f"    ⚠️  Erro ao ler scores {pos_idx}")
+                            #print(f"    ⚠️  Erro ao ler scores {pos_idx}")
                             break
                         
                         # Escreve no arquivo de saída
@@ -176,9 +176,9 @@ def merge_files(files: List[str], output_file: str,
                         
                         # Progresso
                         if (pos_idx + 1) % 10000 == 0:
-                            print(f"    Progresso: {pos_idx + 1:,}/{info['count']:,} posições")
+                            #print(f"    Progresso: {pos_idx + 1:,}/{info['count']:,} posições")
                     
-                    print(f"    ✅ {info['count']:,} posições escritas")
+                    #print(f"    ✅ {info['count']:,} posições escritas")
             
             # Volta para atualizar o cabeçalho com o número correto
             out_f.seek(4)
@@ -187,23 +187,23 @@ def merge_files(files: List[str], output_file: str,
         elapsed = time.time() - start_time
         file_size = os.path.getsize(output_file) / 1024 / 1024
         
-        print(f"\n✅ Merge concluído com sucesso!")
-        print(f"  📁 Arquivo: {output_file}")
-        print(f"  📊 Posições: {positions_written:,}")
-        print(f"  💾 Tamanho: {file_size:.2f} MB")
-        print(f"  ⏱️  Tempo: {elapsed:.2f} segundos")
+        #print(f"\n✅ Merge concluído com sucesso!")
+        #print(f"  📁 Arquivo: {output_file}")
+        #print(f"  📊 Posições: {positions_written:,}")
+        #print(f"  💾 Tamanho: {file_size:.2f} MB")
+        #print(f"  ⏱️  Tempo: {elapsed:.2f} segundos")
         
         # Verifica o arquivo gerado
         if verify:
-            print("\n🔍 Verificando integridade do arquivo final...")
+            #print("\n🔍 Verificando integridade do arquivo final...")
             count, size, valid = read_file_info(output_file)
             
             if valid and count == positions_written:
-                print(f"  ✅ Arquivo final válido!")
-                print(f"  📊 Total de posições: {count:,}")
-                print(f"  📏 Tamanho: {size/1024/1024:.2f} MB")
+                #print(f"  ✅ Arquivo final válido!")
+                #print(f"  📊 Total de posições: {count:,}")
+                #print(f"  📏 Tamanho: {size/1024/1024:.2f} MB")
             else:
-                print(f"  ❌ Arquivo final inválido!")
+                #print(f"  ❌ Arquivo final inválido!")
                 return False
         
         # Pergunta se deseja deletar os originais
@@ -212,12 +212,12 @@ def merge_files(files: List[str], output_file: str,
             if response.lower() == 's':
                 for info in file_info:
                     os.remove(info['file'])
-                    print(f"  🗑️  Deletado: {info['file']}")
+                    #print(f"  🗑️  Deletado: {info['file']}")
         
         return True
         
     except Exception as e:
-        print(f"\n❌ Erro durante o merge: {e}")
+        #print(f"\n❌ Erro durante o merge: {e}")
         return False
 
 # ============== FUNÇÕES ADICIONAIS ==============
@@ -226,20 +226,20 @@ def split_dataset(input_file: str, num_parts: int = 5):
     """
     Divide um arquivo grande em partes menores (útil para processamento paralelo)
     """
-    print(f"\n🔪 Dividindo {input_file} em {num_parts} partes...")
+    #print(f"\n🔪 Dividindo {input_file} em {num_parts} partes...")
     
     # Lê total de posições
     with open(input_file, 'rb') as f:
         magic, total = struct.unpack('4sI', f.read(8))
         if magic != b'NNUE':
-            print("❌ Arquivo inválido!")
+            #print("❌ Arquivo inválido!")
             return
     
     positions_per_part = total // num_parts
     extra = total % num_parts
     
-    print(f"  Total: {total:,} posições")
-    print(f"  Por parte: ~{positions_per_part:,} posições")
+    #print(f"  Total: {total:,} posições")
+    #print(f"  Por parte: ~{positions_per_part:,} posições")
     
     with open(input_file, 'rb') as in_f:
         in_f.seek(8)  # Pula cabeçalho
@@ -267,24 +267,24 @@ def split_dataset(input_file: str, num_parts: int = 5):
                         break
                     out_f.write(data)
             
-            print(f"  ✅ Criado: {output} ({count:,} posições)")
+            #print(f"  ✅ Criado: {output} ({count:,} posições)")
 
 def compare_files(file1: str, file2: str):
     """
     Compara dois arquivos NNUE para verificar se são consistentes
     """
-    print(f"\n🔍 Comparando {file1} e {file2}")
+    #print(f"\n🔍 Comparando {file1} e {file2}")
     
     with open(file1, 'rb') as f1, open(file2, 'rb') as f2:
         magic1, count1 = struct.unpack('4sI', f1.read(8))
         magic2, count2 = struct.unpack('4sI', f2.read(8))
         
         if magic1 != b'NNUE' or magic2 != b'NNUE':
-            print("❌ Magic number inválido")
+            #print("❌ Magic number inválido")
             return
         
         if count1 != count2:
-            print(f"⚠️  Números de posições diferentes: {count1} vs {count2}")
+            #print(f"⚠️  Números de posições diferentes: {count1} vs {count2}")
         
         pos_size = 780 * 4 + 12
         
@@ -296,9 +296,9 @@ def compare_files(file1: str, file2: str):
         data2 = f2.read(pos_size)
         
         if data1 == data2:
-            print("✅ Primeira posição IDÊNTICA")
+            #print("✅ Primeira posição IDÊNTICA")
         else:
-            print("⚠️  Primeira posição DIFERENTE")
+            #print("⚠️  Primeira posição DIFERENTE")
             
             # Mostra diferenças
             diff_positions = []
@@ -308,17 +308,17 @@ def compare_files(file1: str, file2: str):
                     if len(diff_positions) > 5:
                         break
             
-            print(f"  Diferenças em: {diff_positions}")
-            print(f"  Primeira diferença no offset {diff_positions[0] if diff_positions else 'N/A'}")
+            #print(f"  Diferenças em: {diff_positions}")
+            #print(f"  Primeira diferença no offset {diff_positions[0] if diff_positions else 'N/A'}")
 
 # ============== FUNÇÃO PRINCIPAL ==============
 
 def main():
     """Função principal com menu interativo"""
     
-    print("="*80)
-    print("🔗 FERRAMENTA DE MERGE NNUE")
-    print("="*80)
+    #print("="*80)
+    #print("🔗 FERRAMENTA DE MERGE NNUE")
+    #print("="*80)
     
     # Encontra arquivos automaticamente
     pattern = input(f"\n📁 Padrão dos arquivos [{MergeConfig.INPUT_PATTERN}]: ").strip()
@@ -328,7 +328,7 @@ def main():
     files = sorted(glob.glob(pattern))
     
     if not files:
-        print(f"❌ Nenhum arquivo encontrado com padrão: {pattern}")
+        #print(f"❌ Nenhum arquivo encontrado com padrão: {pattern}")
         
         # Opção manual
         manual = input("\nDeseja especificar arquivos manualmente? (s/N): ")
@@ -337,28 +337,28 @@ def main():
             files = files_input.split()
     
     if not files:
-        print("❌ Nenhum arquivo especificado!")
+        #print("❌ Nenhum arquivo especificado!")
         return
     
-    print(f"\n📂 Arquivos encontrados:")
+    #print(f"\n📂 Arquivos encontrados:")
     for i, f in enumerate(files):
         size = os.path.getsize(f) / 1024 / 1024
-        print(f"  {i+1:2d}. {f:40s} ({size:.2f} MB)")
+        #print(f"  {i+1:2d}. {f:40s} ({size:.2f} MB)")
     
     output = input(f"\n📁 Arquivo de saída [{MergeConfig.OUTPUT_FILE}]: ").strip()
     if not output:
         output = MergeConfig.OUTPUT_FILE
     
     # Opções
-    print(f"\n⚙️  Opções:")
-    print(f"  1. Mesclar todos os arquivos ({len(files)} arquivos)")
-    print(f"  2. Selecionar arquivos específicos")
-    print(f"  3. Sair")
+    #print(f"\n⚙️  Opções:")
+    #print(f"  1. Mesclar todos os arquivos ({len(files)} arquivos)")
+    #print(f"  2. Selecionar arquivos específicos")
+    #print(f"  3. Sair")
     
     option = input("\nEscolha uma opção: ").strip()
     
     if option == '2':
-        print("\nSelecione os arquivos (ex: 1,3,5):")
+        #print("\nSelecione os arquivos (ex: 1,3,5):")
         indices = input("Índices: ").strip()
         
         selected = []
@@ -372,25 +372,25 @@ def main():
         
         if selected:
             files = selected
-            print(f"\n✅ Selecionados {len(files)} arquivos")
+            #print(f"\n✅ Selecionados {len(files)} arquivos")
         else:
-            print("❌ Nenhum arquivo selecionado!")
+            #print("❌ Nenhum arquivo selecionado!")
             return
     
     elif option == '3':
-        print("\n👋 Saindo...")
+        #print("\n👋 Saindo...")
         return
     
     # Confirmação
-    print(f"\n📊 Resumo:")
-    print(f"  Arquivos: {len(files)}")
+    #print(f"\n📊 Resumo:")
+    #print(f"  Arquivos: {len(files)}")
     total_size = sum(os.path.getsize(f) for f in files) / 1024 / 1024
-    print(f"  Tamanho total: {total_size:.2f} MB")
-    print(f"  Saída: {output}")
+    #print(f"  Tamanho total: {total_size:.2f} MB")
+    #print(f"  Saída: {output}")
     
     confirm = input("\nConfirmar merge? (S/n): ").strip()
     if confirm.lower() == 'n':
-        print("❌ Operação cancelada!")
+        #print("❌ Operação cancelada!")
         return
     
     # Executa merge
@@ -402,24 +402,24 @@ def main():
     )
     
     if success:
-        print("\n" + "="*80)
-        print("✅ PROCESSO CONCLUÍDO COM SUCESSO!")
-        print("="*80)
+        #print("\n" + "="*80)
+        #print("✅ PROCESSO CONCLUÍDO COM SUCESSO!")
+        #print("="*80)
         
         # Mostra opções adicionais
-        print("\n📋 Opções adicionais:")
-        print("  1. Ver estatísticas do arquivo")
-        print("  2. Dividir em partes menores")
-        print("  3. Sair")
+        #print("\n📋 Opções adicionais:")
+        #print("  1. Ver estatísticas do arquivo")
+        #print("  2. Dividir em partes menores")
+        #print("  3. Sair")
         
         option = input("\nEscolha: ").strip()
         
         if option == '1':
             count, size, valid = read_file_info(output)
-            print(f"\n📊 Estatísticas:")
-            print(f"  Posições: {count:,}")
-            print(f"  Tamanho: {size/1024/1024:.2f} MB")
-            print(f"  Válido: {'Sim' if valid else 'Não'}")
+            #print(f"\n📊 Estatísticas:")
+            #print(f"  Posições: {count:,}")
+            #print(f"  Tamanho: {size/1024/1024:.2f} MB")
+            #print(f"  Válido: {'Sim' if valid else 'Não'}")
         
         elif option == '2':
             parts = int(input("Número de partes: "))
@@ -437,10 +437,10 @@ def quick_merge():
     files = sorted(glob.glob(pattern))
     
     if not files:
-        print(f"❌ Nenhum arquivo encontrado com padrão: {pattern}")
+        #print(f"❌ Nenhum arquivo encontrado com padrão: {pattern}")
         return
     
-    print(f"🔗 Mesclando {len(files)} arquivos...")
+    #print(f"🔗 Mesclando {len(files)} arquivos...")
     merge_files(files, output)
 
 # ============== SCRIPT PRINCIPAL ==============

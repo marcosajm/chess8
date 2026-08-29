@@ -223,14 +223,14 @@ class OurBotMoveSelector:
         # ALWAYS PLAY RANDOM ON OPENING (first move)
         if is_opening:
             selected = random.choice(legal_moves)
-            print(f"  🎲 OUR Bot playing RANDOM opening move")
+            #print(f"  🎲 OUR Bot playing RANDOM opening move")
             return selected, 0.0
         
         # For non-opening moves, use the configured style
         # Small chance of random move for variety (5%)
         if random.random() < 0.05:
             selected = random.choice(legal_moves)
-            print(f"  🎲 OUR Bot playing RANDOM move (variety)")
+            #print(f"  🎲 OUR Bot playing RANDOM move (variety)")
             return selected, 0.0
         
         # Analyze all legal moves using Stockfish
@@ -273,18 +273,18 @@ class OurBotMoveSelector:
             if self.move_counter % 2 == 5: #3 == 1
                 # Best move (every 3rd move starting from 1)
                 selected = move_scores[-1]
-                print(f"  🎯 OUR Bot playing BEST move (alternating pattern #{self.move_counter})")
+                #print(f"  🎯 OUR Bot playing BEST move (alternating pattern #{self.move_counter})")
                 return selected
             else:
                 # Worst move (moves 2-3, 5-6, 8-9, ...)
                 selected = move_scores[0]
-                print(f"  🎯 OUR Bot playing WORST move (alternating pattern #{self.move_counter})")
+                #print(f"  🎯 OUR Bot playing WORST move (alternating pattern #{self.move_counter})")
                 return selected
         
         elif self.style == 'worst':
             # Select the move with the lowest score (worst move)
             selected = move_scores[0]
-            print(f"  🎯 OUR Bot playing WORST move (score: {selected[1]:.2f})")
+            #print(f"  🎯 OUR Bot playing WORST move (score: {selected[1]:.2f})")
             return selected
         
         elif self.style == 'average':
@@ -302,14 +302,14 @@ class OurBotMoveSelector:
                 random_idx = random.randint(lower_bound, upper_bound - 1)
                 selected = move_scores[random_idx]
             
-            print(f"  🎯 OUR Bot playing AVERAGE move (score: {selected[1]:.2f}, "
+            #print(f"  🎯 OUR Bot playing AVERAGE move (score: {selected[1]:.2f}, "
                   f"range: {move_scores[0][1]:.2f} to {move_scores[-1][1]:.2f})")
             return selected
         
         else:  # 'best' or default
             # Select the move with the highest score
             selected = move_scores[-1]
-            print(f"  🎯 OUR Bot playing BEST move (score: {selected[1]:.2f})")
+            #print(f"  🎯 OUR Bot playing BEST move (score: {selected[1]:.2f})")
             return selected
 
 # ============== Data Generator ==============
@@ -338,15 +338,15 @@ class DataGenerator:
         if skill_level is not None:
             try:
                 self.engine.configure({"Skill Level": skill_level})
-                print(f"  ⚙️  Stockfish configured with Skill Level: {skill_level}")
+                #print(f"  ⚙️  Stockfish configured with Skill Level: {skill_level}")
             except chess.engine.EngineError as e:
-                print(f"  Warning: Could not set Skill Level {skill_level}: {e}")
+                #print(f"  Warning: Could not set Skill Level {skill_level}: {e}")
                 # If Skill Level fails, use UCI_Elo instead (alternative)
                 try:
                     # Convert skill level to approximate Elo
                     elo = 800 + (skill_level * 100)
                     self.engine.configure({"UCI_Elo": elo})
-                    print(f"  ⚙️  Stockfish configured with UCI_Elo: {elo}")
+                    #print(f"  ⚙️  Stockfish configured with UCI_Elo: {elo}")
                 except:
                     pass  # Fall back to default strength
     
@@ -356,18 +356,18 @@ class DataGenerator:
             self.engine = None
     
     def generate_data(self, num_games: int = Config.NUM_GAMES):
-        print(f"\n{'='*80}")
-        print(f"📊 NNUE DATA GENERATOR")
-        print(f"{'='*80}")
-        print(f"  Stockfish path: {self.stockfish_path}")
-        print(f"  Stockfish skill levels: {Config.STOCKFISH_SKILL_LEVELS}")
-        print(f"  OUR Bot play style: {self.our_bot_style.upper()}")
+        #print(f"\n{'='*80}")
+        #print(f"📊 NNUE DATA GENERATOR")
+        #print(f"{'='*80}")
+        #print(f"  Stockfish path: {self.stockfish_path}")
+        #print(f"  Stockfish skill levels: {Config.STOCKFISH_SKILL_LEVELS}")
+        #print(f"  OUR Bot play style: {self.our_bot_style.upper()}")
         if self.our_bot_style == 'alternating':
-            print(f"    Pattern: 1 BEST move, then 2 WORST moves (repeating)")
-        print(f"  Games: {num_games}")
-        print(f"  Max moves per game: {Config.MAX_MOVES}")
-        print(f"  Opening moves: 100% RANDOM")
-        print(f"{'='*80}")
+            #print(f"    Pattern: 1 BEST move, then 2 WORST moves (repeating)")
+        #print(f"  Games: {num_games}")
+        #print(f"  Max moves per game: {Config.MAX_MOVES}")
+        #print(f"  Opening moves: 100% RANDOM")
+        #print(f"{'='*80}")
         
         all_positions = []
         openings = self._get_openings()
@@ -379,7 +379,7 @@ class DataGenerator:
         start_time = time.time()
         
         for level_idx, skill_level in enumerate(stockfish_levels):
-            print(f"\n  🎯 Playing against Stockfish at skill level: {skill_level}")
+            #print(f"\n  🎯 Playing against Stockfish at skill level: {skill_level}")
             self.start_stockfish_engine(skill_level)
             
             # Reset the bot selector's move counter for each level
@@ -394,7 +394,7 @@ class DataGenerator:
                     elapsed = time.time() - start_time
                     total_games = level_idx * games_per_level + game_idx + 1
                     avg_pos = len(all_positions) // total_games if total_games > 0 else 0
-                    print(f"    Game {total_games}/{num_games} - {len(all_positions)} positions "
+                    #print(f"    Game {total_games}/{num_games} - {len(all_positions)} positions "
                           f"(~{avg_pos}/game) - {elapsed/60:.1f}min")
             
             self.stop_engine()
@@ -446,7 +446,7 @@ class DataGenerator:
                     legal_moves = list(board.legal_moves)
                     if legal_moves:
                         move = random.choice(legal_moves)
-                        print(f"  🎲 OUR Bot playing RANDOM opening move: {board.san(move)}")
+                        #print(f"  🎲 OUR Bot playing RANDOM opening move: {board.san(move)}")
                     else:
                         break
                 else:
@@ -466,7 +466,7 @@ class DataGenerator:
                             else:
                                 break
                     except Exception as e:
-                        print(f"  Warning: Error in OUR bot move selection: {e}")
+                        #print(f"  Warning: Error in OUR bot move selection: {e}")
                         # Fallback to random
                         legal_moves = list(board.legal_moves)
                         if legal_moves:
@@ -479,7 +479,7 @@ class DataGenerator:
                     result = self.engine.play(board, limit=chess.engine.Limit(depth=Config.DEPTH-2))
                     move = result.move
                 except Exception as e:
-                    print(f"  Warning: Stockfish move error: {e}")
+                    #print(f"  Warning: Stockfish move error: {e}")
                     # Fallback to random move
                     legal_moves = list(board.legal_moves)
                     if legal_moves:
@@ -527,21 +527,21 @@ class DataGenerator:
                 f.write(struct.pack('fff', pos.score, pos.result, pos.tactical_score))
         
         file_size = os.path.getsize(Config.DATA_FILE) / (1024 * 1024)
-        print(f"\n{'='*80}")
-        print(f"✅ Data generation complete!")
-        print(f"  Saved {len(positions)} positions to {Config.DATA_FILE}")
-        print(f"  File size: {file_size:.2f} MB")
-        print(f"  Bot style used: {self.our_bot_style.upper()}")
+        #print(f"\n{'='*80}")
+        #print(f"✅ Data generation complete!")
+        #print(f"  Saved {len(positions)} positions to {Config.DATA_FILE}")
+        #print(f"  File size: {file_size:.2f} MB")
+        #print(f"  Bot style used: {self.our_bot_style.upper()}")
         if self.our_bot_style == 'alternating':
-            print(f"  Pattern: 1 BEST, 2 WORST (repeating)")
-        print(f"{'='*80}")
+            #print(f"  Pattern: 1 BEST, 2 WORST (repeating)")
+        #print(f"{'='*80}")
 
 # ============== Main ==============
 def main():
     # Check Stockfish
     if not os.path.exists(Config.STOCKFISH_PATH):
-        print(f"\n⚠️  Stockfish not found at: {Config.STOCKFISH_PATH}")
-        print("Please install Stockfish or update STOCKFISH_PATH in Config")
+        #print(f"\n⚠️  Stockfish not found at: {Config.STOCKFISH_PATH}")
+        #print("Please install Stockfish or update STOCKFISH_PATH in Config")
         return
     
     # Generate data

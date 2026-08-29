@@ -26,7 +26,7 @@ class GameLoader:
     @staticmethod
     def load_games(filename: str, max_games: Optional[int] = None) -> List[List[dict]]:
         """Load games from binary file"""
-        print(f"Loading games from {filename}...")
+        #print(f"Loading games from {filename}...")
         
         games = []
         current_game = []
@@ -37,15 +37,15 @@ class GameLoader:
             with open(filename, 'rb') as f:
                 magic, count = struct.unpack('4sI', f.read(8))
                 if magic != b'NNUE':
-                    print(f"Invalid file format: {magic}")
+                    #print(f"Invalid file format: {magic}")
                     return []
                 
-                print(f"Found {count} positions in file")
+                #print(f"Found {count} positions in file")
                 
                 # Read all positions
                 for i in range(count):
                     if i % 50000 == 0 and i > 0:
-                        print(f"  Processed {i} positions...")
+                        #print(f"  Processed {i} positions...")
                     
                     # Read features
                     feat_data = f.read(780 * 4)
@@ -92,10 +92,10 @@ class GameLoader:
                     game_count += 1
                 
         except Exception as e:
-            print(f"Error loading file: {e}")
+            #print(f"Error loading file: {e}")
             return []
         
-        print(f"Loaded {len(games)} games from {filename}")
+        #print(f"Loaded {len(games)} games from {filename}")
         return games
     
     @staticmethod
@@ -369,7 +369,7 @@ class ChessGameVisualizer:
             self.canvas.image = photo  # Keep reference
             
         except Exception as e:
-            print(f"Error drawing board: {e}")
+            #print(f"Error drawing board: {e}")
             self.canvas.delete("all")
             self.canvas.create_text(300, 300, text=f"Error loading position\n{fen}", 
                                    font=('Arial', 20), fill='red')
@@ -684,8 +684,8 @@ if __name__ == "__main__":
         import cairosvg
         import PIL
     except ImportError:
-        print("Installing required dependencies...")
-        print("Run: pip install cairosvg pillow")
-        print("On Ubuntu: sudo apt-get install libcairo2-dev")
+        #print("Installing required dependencies...")
+        #print("Run: pip install cairosvg pillow")
+        #print("On Ubuntu: sudo apt-get install libcairo2-dev")
     
     main()

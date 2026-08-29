@@ -111,11 +111,11 @@ class NNUE(nn.Module):
                      Config.NNUE_H2 * Config.NNUE_OUT +
                      Config.NNUE_OUT)
         
-        print(f"Exported {len(flat_array)} floats to {filepath}")
-        print(f"Expected size: {total_size} floats")
+        #print(f"Exported {len(flat_array)} floats to {filepath}")
+        #print(f"Expected size: {total_size} floats")
         
         if len(flat_array) != total_size:
-            print(f"WARNING: Size mismatch! Got {len(flat_array)}, expected {total_size}")
+            #print(f"WARNING: Size mismatch! Got {len(flat_array)}, expected {total_size}")
         
         return flat_array
 
@@ -154,8 +154,8 @@ class DataGenerator:
     
     def start_engine(self):
         if not os.path.exists(self.stockfish_path):
-            print(f"Stockfish not found at {self.stockfish_path}")
-            print("Download from: https://stockfishchess.org/download/")
+            #print(f"Stockfish not found at {self.stockfish_path}")
+            #print("Download from: https://stockfishchess.org/download/")
             raise FileNotFoundError(f"Stockfish executable not found: {self.stockfish_path}")
         
         self.engine = chess.engine.SimpleEngine.popen_uci(self.stockfish_path)
@@ -173,7 +173,7 @@ class DataGenerator:
         move_count = 0
         depth_limit = chess.engine.Limit(depth=Config.DEPTH)
         
-        print(f"  Playing game...", end="", flush=True)
+        #print(f"  Playing game...", end="", flush=True)
         
         while not board.is_game_over() and move_count < max_moves:
             analysis = self.engine.analyse(board, limit=depth_limit)
@@ -198,9 +198,9 @@ class DataGenerator:
             move_count += 1
             
             if move_count % 20 == 0:
-                print(".", end="", flush=True)
+                #print(".", end="", flush=True)
         
-        print(f" done ({move_count} moves)")
+        #print(f" done ({move_count} moves)")
         
         result = 0.0
         if board.is_checkmate():
@@ -217,8 +217,8 @@ class DataGenerator:
     
     def generate_data(self, num_games: int = Config.NUM_GAMES, 
                       output_file: str = Config.DATA_FILE):
-        print(f"Generating {num_games} self-play games at depth {Config.DEPTH}...")
-        print(f"Using Stockfish from: {self.stockfish_path}")
+        #print(f"Generating {num_games} self-play games at depth {Config.DEPTH}...")
+        #print(f"Using Stockfish from: {self.stockfish_path}")
         
         self.start_engine()
         all_positions = []
@@ -235,17 +235,17 @@ class DataGenerator:
                 if (game_idx + 1) % 10 == 0:
                     elapsed = time.time() - start_time
                     avg_positions = len(all_positions) // (game_idx + 1)
-                    print(f"Game {game_idx + 1}/{num_games} completed. "
+                    #print(f"Game {game_idx + 1}/{num_games} completed. "
                           f"Total positions: {len(all_positions)} "
                           f"({avg_positions} avg/game) "
                           f"Time: {elapsed/60:.1f} min")
             except Exception as e:
-                print(f"Error in game {game_idx}: {e}")
+                #print(f"Error in game {game_idx}: {e}")
                 continue
         
         self.stop_engine()
         self._save_data(all_positions, output_file)
-        print(f"Generated {len(all_positions)} positions from {num_games} games")
+        #print(f"Generated {len(all_positions)} positions from {num_games} games")
         return all_positions
     
     def _get_openings(self) -> List[str]:
@@ -267,9 +267,9 @@ class DataGenerator:
                 f.write(pos.features.tobytes())
                 f.write(struct.pack('ff', pos.score, pos.result))
         
-        print(f"Saved {len(positions)} positions to {filename}")
+        #print(f"Saved {len(positions)} positions to {filename}")
         file_size = os.path.getsize(filename) / (1024 * 1024)
-        print(f"File size: {file_size:.2f} MB")
+        #print(f"File size: {file_size:.2f} MB")
 
 # ============== Dataset Class ==============
 class NNUE_Dataset(Dataset):
@@ -280,18 +280,18 @@ class NNUE_Dataset(Dataset):
         self._load_data(data_file)
     
     def _load_data(self, filename: str):
-        print(f"Loading training data from {filename}...")
+        #print(f"Loading training data from {filename}...")
         
         with open(filename, 'rb') as f:
             magic, count = struct.unpack('4sI', f.read(8))
             if magic != b'NNUE':
                 raise ValueError(f"Invalid file format: expected 'NNUE', got {magic}")
             
-            print(f"Found {count} positions")
+            #print(f"Found {count} positions")
             
             for i in range(count):
                 if i % 100000 == 0 and i > 0:
-                    print(f"  Loaded {i} positions...")
+                    #print(f"  Loaded {i} positions...")
                 
                 feat_data = f.read(Config.NNUE_INPUT_DIM * 4)
                 feat = np.frombuffer(feat_data, dtype=np.float32)
@@ -301,7 +301,7 @@ class NNUE_Dataset(Dataset):
                 self.scores.append(score)
                 self.results.append(result)
         
-        print(f"Loaded {len(self.features)} positions")
+        #print(f"Loaded {len(self.features)} positions")
     
     def __len__(self):
         return len(self.features)
@@ -317,7 +317,7 @@ def train_model(model: NNUE, train_loader: DataLoader,
                 learning_rate: float = Config.LEARNING_RATE):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = model.to(device)
-    print(f"Using device: {device}")
+    #print(f"Using device: {device}")
     
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, 
                           weight_decay=Config.WEIGHT_DECAY)
@@ -335,9 +335,9 @@ def train_model(model: NNUE, train_loader: DataLoader,
     patience_counter = 0
     training_history = {'train_loss': [], 'val_loss': [], 'learning_rates': []}
     
-    print(f"Starting training for {epochs} epochs...")
-    print(f"Training samples: {len(train_loader.dataset)}")
-    print(f"Validation samples: {len(val_features)}")
+    #print(f"Starting training for {epochs} epochs...")
+    #print(f"Training samples: {len(train_loader.dataset)}")
+    #print(f"Validation samples: {len(val_features)}")
     
     start_time = time.time()
     
@@ -362,7 +362,7 @@ def train_model(model: NNUE, train_loader: DataLoader,
             batch_count += 1
             
             if batch_idx % 100 == 0:
-                print(f"  Epoch {epoch+1}/{epochs}, Batch {batch_idx}, Loss: {loss.item():.4f}")
+                #print(f"  Epoch {epoch+1}/{epochs}, Batch {batch_idx}, Loss: {loss.item():.4f}")
         
         avg_train_loss = train_loss / batch_count
         
@@ -382,29 +382,29 @@ def train_model(model: NNUE, train_loader: DataLoader,
         training_history['learning_rates'].append(optimizer.param_groups[0]['lr'])
         
         elapsed = time.time() - start_time
-        print(f"Epoch {epoch+1}/{epochs} - "
+        #print(f"Epoch {epoch+1}/{epochs} - "
               f"Train Loss: {avg_train_loss:.6f}, "
               f"Val Loss: {val_loss:.6f}, "
               f"LR: {optimizer.param_groups[0]['lr']:.6f}, "
               f"Time: {elapsed/60:.1f} min")
         
         if lr_changed:
-            print(f"  📉 Learning rate reduced from {old_lr:.6f} to {new_lr:.6f}")
+            #print(f"  📉 Learning rate reduced from {old_lr:.6f} to {new_lr:.6f}")
         
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             patience_counter = 0
             torch.save(model.state_dict(), Config.MODEL_FILE)
-            print(f"  ✅ New best model saved (val loss: {val_loss:.6f})")
+            #print(f"  ✅ New best model saved (val loss: {val_loss:.6f})")
         else:
             patience_counter += 1
             if patience_counter >= Config.PATIENCE:
-                print(f"  ⏹️ Early stopping triggered (patience: {Config.PATIENCE})")
+                #print(f"  ⏹️ Early stopping triggered (patience: {Config.PATIENCE})")
                 break
     
     # Carregar melhor modelo
     model.load_state_dict(torch.load(Config.MODEL_FILE))
-    print(f"Training completed! Best validation loss: {best_val_loss:.6f}")
+    #print(f"Training completed! Best validation loss: {best_val_loss:.6f}")
     
     # Salvar histórico de treinamento
     with open('training_history.json', 'w') as f:
@@ -413,12 +413,12 @@ def train_model(model: NNUE, train_loader: DataLoader,
     return model
 
 # ============== Menu System ==============
-def print_menu():
-    """Print the main menu"""
-    print("\n" + "=" * 70)
-    print(" 🧠 NNUE Training Pipeline - Advanced Menu")
-    print("=" * 70)
-    print("""
+defprint_menu():
+    """#print the main menu"""
+    #print("\n" + "=" * 70)
+    #print(" 🧠 NNUE Training Pipeline - Advanced Menu")
+    #print("=" * 70)
+    #print("""
   ┌─────────────────────────────────────────────────────────────┐
   │ 1. Generate Training Data                                   │
   │ 2. Load Existing Data and Train                             │
@@ -431,7 +431,7 @@ def print_menu():
   │ 9. Exit                                                     │
   └─────────────────────────────────────────────────────────────┘
   """)
-    print("=" * 70)
+    #print("=" * 70)
 
 def get_user_input(prompt: str, default=None, type_func=str):
     """Get validated user input"""
@@ -442,13 +442,13 @@ def get_user_input(prompt: str, default=None, type_func=str):
         try:
             return type_func(user_input)
         except ValueError:
-            print(f"Invalid input. Please enter a valid {type_func.__name__}.")
+            #print(f"Invalid input. Please enter a valid {type_func.__name__}.")
 
 def show_config():
     """Display current configuration"""
-    print("\n" + "=" * 70)
-    print("Current Configuration")
-    print("=" * 70)
+    #print("\n" + "=" * 70)
+    #print("Current Configuration")
+    #print("=" * 70)
     
     config_items = {
         'Network Architecture': {
@@ -480,16 +480,16 @@ def show_config():
     }
     
     for section, items in config_items.items():
-        print(f"\n📁 {section}:")
+        #print(f"\n📁 {section}:")
         for key, value in items.items():
-            print(f"  {key:20} : {value}")
+            #print(f"  {key:20} : {value}")
 
 def advanced_config():
     """Advanced configuration menu"""
-    print("\n" + "=" * 70)
-    print("Advanced Configuration")
-    print("=" * 70)
-    print("""
+    #print("\n" + "=" * 70)
+    #print("Advanced Configuration")
+    #print("=" * 70)
+    #print("""
   1. Network Architecture (Hidden Layer Sizes)
   2. Training Parameters (LR, Batch Size, Epochs)
   3. Data Generation (Depth, Games, Stockfish Path)
@@ -502,15 +502,15 @@ def advanced_config():
     choice = get_user_input("Select option (1-7): ", type_func=int)
     
     if choice == 1:
-        print("\nNetwork Architecture Configuration:")
+        #print("\nNetwork Architecture Configuration:")
         Config.NNUE_H1 = get_user_input(f"Hidden Layer 1 size (current: {Config.NNUE_H1}): ", 
                                        default=Config.NNUE_H1, type_func=int)
         Config.NNUE_H2 = get_user_input(f"Hidden Layer 2 size (current: {Config.NNUE_H2}): ", 
                                        default=Config.NNUE_H2, type_func=int)
-        print("✅ Network architecture updated!")
+        #print("✅ Network architecture updated!")
     
     elif choice == 2:
-        print("\nTraining Parameters Configuration:")
+        #print("\nTraining Parameters Configuration:")
         Config.LEARNING_RATE = get_user_input(f"Learning Rate (current: {Config.LEARNING_RATE}): ", 
                                              default=Config.LEARNING_RATE, type_func=float)
         Config.BATCH_SIZE = get_user_input(f"Batch Size (current: {Config.BATCH_SIZE}): ", 
@@ -521,10 +521,10 @@ def advanced_config():
                                             default=Config.WEIGHT_DECAY, type_func=float)
         Config.PATIENCE = get_user_input(f"Early Stopping Patience (current: {Config.PATIENCE}): ", 
                                         default=Config.PATIENCE, type_func=int)
-        print("✅ Training parameters updated!")
+        #print("✅ Training parameters updated!")
     
     elif choice == 3:
-        print("\nData Generation Configuration:")
+        #print("\nData Generation Configuration:")
         Config.STOCKFISH_PATH = get_user_input(f"Stockfish Path (current: {Config.STOCKFISH_PATH}): ", 
                                               default=Config.STOCKFISH_PATH, type_func=str)
         Config.DEPTH = get_user_input(f"Search Depth (current: {Config.DEPTH}): ", 
@@ -533,7 +533,7 @@ def advanced_config():
                                          default=Config.NUM_GAMES, type_func=int)
         Config.MAX_MOVES = get_user_input(f"Max Moves per Game (current: {Config.MAX_MOVES}): ", 
                                          default=Config.MAX_MOVES, type_func=int)
-        print("✅ Data generation parameters updated!")
+        #print("✅ Data generation parameters updated!")
     
     elif choice == 4:
         save_config()
@@ -549,7 +549,7 @@ def save_config():
     config_dict = {k: v for k, v in Config.__dict__.items() if not k.startswith('__')}
     with open(Config.CONFIG_FILE, 'w') as f:
         json.dump(config_dict, f, indent=4, default=str)
-    print(f"✅ Configuration saved to {Config.CONFIG_FILE}")
+    #print(f"✅ Configuration saved to {Config.CONFIG_FILE}")
 
 def load_config():
     """Load configuration from JSON file"""
@@ -559,11 +559,11 @@ def load_config():
         for key, value in config_dict.items():
             if hasattr(Config, key):
                 setattr(Config, key, value)
-        print(f"✅ Configuration loaded from {Config.CONFIG_FILE}")
+        #print(f"✅ Configuration loaded from {Config.CONFIG_FILE}")
     except FileNotFoundError:
-        print(f"❌ Configuration file {Config.CONFIG_FILE} not found")
+        #print(f"❌ Configuration file {Config.CONFIG_FILE} not found")
     except Exception as e:
-        print(f"❌ Error loading configuration: {e}")
+        #print(f"❌ Error loading configuration: {e}")
 
 def reset_config():
     """Reset configuration to defaults"""
@@ -601,7 +601,7 @@ def reset_config():
         if not key.startswith('__'):
             setattr(Config, key, value)
     
-    print("✅ Configuration reset to defaults!")
+    #print("✅ Configuration reset to defaults!")
 
 def view_statistics():
     """View training statistics"""
@@ -609,24 +609,24 @@ def view_statistics():
         with open('training_history.json', 'r') as f:
             history = json.load(f)
         
-        print("\n" + "=" * 70)
-        print("Training Statistics")
-        print("=" * 70)
+        #print("\n" + "=" * 70)
+        #print("Training Statistics")
+        #print("=" * 70)
         
-        print(f"\n📊 Training Progress:")
-        print(f"  Epochs Completed: {len(history['train_loss'])}")
-        print(f"  Final Train Loss: {history['train_loss'][-1]:.6f}")
-        print(f"  Final Val Loss: {history['val_loss'][-1]:.6f}")
-        print(f"  Best Val Loss: {min(history['val_loss']):.6f}")
+        #print(f"\n📊 Training Progress:")
+        #print(f"  Epochs Completed: {len(history['train_loss'])}")
+        #print(f"  Final Train Loss: {history['train_loss'][-1]:.6f}")
+        #print(f"  Final Val Loss: {history['val_loss'][-1]:.6f}")
+        #print(f"  Best Val Loss: {min(history['val_loss']):.6f}")
         
-        print(f"\n📉 Learning Rates:")
+        #print(f"\n📉 Learning Rates:")
         for i, lr in enumerate(history['learning_rates']):
-            print(f"  Epoch {i+1}: {lr:.8f}")
+            #print(f"  Epoch {i+1}: {lr:.8f}")
         
     except FileNotFoundError:
-        print("❌ No training history found. Train a model first.")
+        #print("❌ No training history found. Train a model first.")
     except Exception as e:
-        print(f"❌ Error viewing statistics: {e}")
+        #print(f"❌ Error viewing statistics: {e}")
 
 def test_model():
     """Test the trained model on specific positions"""
@@ -636,10 +636,10 @@ def test_model():
         model.load_state_dict(torch.load(Config.MODEL_FILE))
         model.eval()
         
-        print("\n" + "=" * 70)
-        print("Test Model on Positions")
-        print("=" * 70)
-        print("Enter FEN positions (or 'q' to quit):")
+        #print("\n" + "=" * 70)
+        #print("Test Model on Positions")
+        #print("=" * 70)
+        #print("Enter FEN positions (or 'q' to quit):")
         
         while True:
             fen = input("\nFEN: ").strip()
@@ -654,17 +654,17 @@ def test_model():
                     features_tensor = torch.tensor(features, dtype=torch.float32).unsqueeze(0)
                     score = model(features_tensor).item()
                 
-                print(f"  Evaluation: {score:.2f}")
-                print(f"  Board: {board.fen()}")
-                print(f"  To move: {'White' if board.turn == chess.WHITE else 'Black'}")
+                #print(f"  Evaluation: {score:.2f}")
+                #print(f"  Board: {board.fen()}")
+                #print(f"  To move: {'White' if board.turn == chess.WHITE else 'Black'}")
                 
             except Exception as e:
-                print(f"  ❌ Error evaluating position: {e}")
+                #print(f"  ❌ Error evaluating position: {e}")
                 
     except FileNotFoundError:
-        print(f"❌ Model file {Config.MODEL_FILE} not found. Train a model first.")
+        #print(f"❌ Model file {Config.MODEL_FILE} not found. Train a model first.")
     except Exception as e:
-        print(f"❌ Error: {e}")
+        #print(f"❌ Error: {e}")
 
 def compare_with_stockfish():
     """Compare model evaluation with Stockfish"""
@@ -679,10 +679,10 @@ def compare_with_stockfish():
         # Start Stockfish
         engine = chess.engine.SimpleEngine.popen_uci(Config.STOCKFISH_PATH)
         
-        print("\n" + "=" * 70)
-        print("Compare with Stockfish")
-        print("=" * 70)
-        print("Enter FEN positions (or 'q' to quit):")
+        #print("\n" + "=" * 70)
+        #print("Compare with Stockfish")
+        #print("=" * 70)
+        #print("Enter FEN positions (or 'q' to quit):")
         
         while True:
             fen = input("\nFEN: ").strip()
@@ -705,26 +705,26 @@ def compare_with_stockfish():
                     stockfish_score = 0
                 stockfish_score = stockfish_score / 100.0
                 
-                print(f"\n  NNUE:      {nnue_score:.2f}")
-                print(f"  Stockfish: {stockfish_score:.2f}")
-                print(f"  Difference: {abs(nnue_score - stockfish_score):.2f}")
+                #print(f"\n  NNUE:      {nnue_score:.2f}")
+                #print(f"  Stockfish: {stockfish_score:.2f}")
+                #print(f"  Difference: {abs(nnue_score - stockfish_score):.2f}")
                 
             except Exception as e:
-                print(f"  ❌ Error: {e}")
+                #print(f"  ❌ Error: {e}")
         
         engine.quit()
         
     except FileNotFoundError:
-        print(f"❌ Model or Stockfish not found")
+        #print(f"❌ Model or Stockfish not found")
     except Exception as e:
-        print(f"❌ Error: {e}")
+        #print(f"❌ Error: {e}")
 
 # ============== Main Pipeline ==============
 def generate_data_only():
     """Only generate training data"""
-    print("\n" + "=" * 70)
-    print("Generate Training Data Only")
-    print("=" * 70)
+    #print("\n" + "=" * 70)
+    #print("Generate Training Data Only")
+    #print("=" * 70)
     
     generator = DataGenerator()
     
@@ -732,24 +732,24 @@ def generate_data_only():
         response = get_user_input(f"Data file {Config.DATA_FILE} exists. Overwrite? (y/n): ", 
                                  default='n')
         if response.lower() != 'y':
-            print("Skipping data generation...")
+            #print("Skipping data generation...")
             return
     
     generator.generate_data()
 
 def load_and_train():
     """Load existing data and train"""
-    print("\n" + "=" * 70)
-    print("Load Data and Train")
-    print("=" * 70)
+    #print("\n" + "=" * 70)
+    #print("Load Data and Train")
+    #print("=" * 70)
     
     if not os.path.exists(Config.DATA_FILE):
-        print(f"❌ Data file {Config.DATA_FILE} not found!")
-        print("Generate data first (option 1) or run full pipeline (option 3)")
+        #print(f"❌ Data file {Config.DATA_FILE} not found!")
+        #print("Generate data first (option 1) or run full pipeline (option 3)")
         return
     
     # Load data
-    print("\nLoading training data...")
+    #print("\nLoading training data...")
     dataset = NNUE_Dataset(Config.DATA_FILE)
     
     # Split data
@@ -776,27 +776,27 @@ def load_and_train():
         pin_memory=torch.cuda.is_available()
     )
     
-    print(f"Training samples: {len(train_dataset)}")
-    print(f"Validation samples: {len(val_dataset)}")
+    #print(f"Training samples: {len(train_dataset)}")
+    #print(f"Validation samples: {len(val_dataset)}")
     
     # Create and train model
     model = NNUE()
-    print(f"\nModel Architecture:")
-    print(f"  Input: {Config.NNUE_INPUT_DIM}")
-    print(f"  Hidden: {Config.NNUE_H1} -> {Config.NNUE_H2}")
-    print(f"  Parameters: {sum(p.numel() for p in model.parameters()):,}")
+    #print(f"\nModel Architecture:")
+    #print(f"  Input: {Config.NNUE_INPUT_DIM}")
+    #print(f"  Hidden: {Config.NNUE_H1} -> {Config.NNUE_H2}")
+    #print(f"  Parameters: {sum(p.numel() for p in model.parameters()):,}")
     
     model = train_model(model, train_loader, val_features, val_scores)
     
     # Export weights
-    print("\nExporting weights...")
+    #print("\nExporting weights...")
     model.export_weights(Config.WEIGHTS_FILE)
 
 def full_pipeline():
     """Run the complete pipeline"""
-    print("\n" + "=" * 70)
-    print("Full Training Pipeline")
-    print("=" * 70)
+    #print("\n" + "=" * 70)
+    #print("Full Training Pipeline")
+    #print("=" * 70)
     
     # Step 1: Generate data
     generate_data_only()
@@ -807,18 +807,18 @@ def full_pipeline():
     # Step 3: Verify
     verify_weights()
     
-    print("\n" + "=" * 70)
-    print("✅ Full pipeline completed successfully!")
-    print("=" * 70)
+    #print("\n" + "=" * 70)
+    #print("✅ Full pipeline completed successfully!")
+    #print("=" * 70)
 
 def export_only():
     """Export weights from existing model"""
-    print("\n" + "=" * 70)
-    print("Export Weights Only")
-    print("=" * 70)
+    #print("\n" + "=" * 70)
+    #print("Export Weights Only")
+    #print("=" * 70)
     
     if not os.path.exists(Config.MODEL_FILE):
-        print(f"❌ Model file {Config.MODEL_FILE} not found!")
+        #print(f"❌ Model file {Config.MODEL_FILE} not found!")
         return
     
     try:
@@ -830,13 +830,13 @@ def export_only():
         verify_weights()
         
     except Exception as e:
-        print(f"❌ Error exporting weights: {e}")
+        #print(f"❌ Error exporting weights: {e}")
 
 def verify_weights():
     """Verify exported weights"""
     try:
         if not os.path.exists(Config.WEIGHTS_FILE):
-            print(f"❌ Weights file {Config.WEIGHTS_FILE} not found!")
+            #print(f"❌ Weights file {Config.WEIGHTS_FILE} not found!")
             return
         
         weights = np.fromfile(Config.WEIGHTS_FILE, dtype=np.float32)
@@ -849,13 +849,13 @@ def verify_weights():
         b3_size = Config.NNUE_OUT
         total_expected = w1_size + b1_size + w2_size + b2_size + w3_size + b3_size
         
-        print(f"\n📊 Weight Verification:")
-        print(f"  File: {Config.WEIGHTS_FILE}")
-        print(f"  Floats: {len(weights)}")
-        print(f"  Expected: {total_expected}")
+        #print(f"\n📊 Weight Verification:")
+        #print(f"  File: {Config.WEIGHTS_FILE}")
+        #print(f"  Floats: {len(weights)}")
+        #print(f"  Expected: {total_expected}")
         
         if len(weights) == total_expected:
-            print("  ✅ Size matches C code expectations!")
+            #print("  ✅ Size matches C code expectations!")
             
             # Parse layers
             offset = 0
@@ -871,46 +871,46 @@ def verify_weights():
             offset += w3_size
             b3 = weights[offset:offset + b3_size]
             
-            print(f"  w1: {w1.shape} (mean: {w1.mean():.6f}, std: {w1.std():.6f})")
-            print(f"  b1: {b1.shape} (mean: {b1.mean():.6f}, std: {b1.std():.6f})")
-            print(f"  w2: {w2.shape} (mean: {w2.mean():.6f}, std: {w2.std():.6f})")
-            print(f"  b2: {b2.shape} (mean: {b2.mean():.6f}, std: {b2.std():.6f})")
-            print(f"  w3: {w3.shape} (mean: {w3.mean():.6f}, std: {w3.std():.6f})")
-            print(f"  b3: {b3.shape} (mean: {b3.mean():.6f}, std: {b3.std():.6f})")
+            #print(f"  w1: {w1.shape} (mean: {w1.mean():.6f}, std: {w1.std():.6f})")
+            #print(f"  b1: {b1.shape} (mean: {b1.mean():.6f}, std: {b1.std():.6f})")
+            #print(f"  w2: {w2.shape} (mean: {w2.mean():.6f}, std: {w2.std():.6f})")
+            #print(f"  b2: {b2.shape} (mean: {b2.mean():.6f}, std: {b2.std():.6f})")
+            #print(f"  w3: {w3.shape} (mean: {w3.mean():.6f}, std: {w3.std():.6f})")
+            #print(f"  b3: {b3.shape} (mean: {b3.mean():.6f}, std: {b3.std():.6f})")
         else:
-            print("  ❌ Size mismatch!")
+            #print("  ❌ Size mismatch!")
             
     except Exception as e:
-        print(f"❌ Error verifying weights: {e}")
+        #print(f"❌ Error verifying weights: {e}")
 
 # ============== Main Program ==============
 def main():
     """Main program with menu"""
-    print("\n" + "=" * 70)
-    print(" 🧠 NNUE Training Pipeline - Advanced Edition")
-    print(f" 📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("=" * 70)
+    #print("\n" + "=" * 70)
+    #print(" 🧠 NNUE Training Pipeline - Advanced Edition")
+    #print(f" 📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    #print("=" * 70)
     
     # Check dependencies
     try:
         import chess
         import torch
         import numpy
-        print("✅ All dependencies satisfied")
+        #print("✅ All dependencies satisfied")
     except ImportError as e:
-        print(f"❌ Missing dependency: {e}")
-        print("Please install required packages:")
-        print("  pip install python-chess torch numpy")
+        #print(f"❌ Missing dependency: {e}")
+        #print("Please install required packages:")
+        #print("  pip install python-chess torch numpy")
         return
     
     # Check Stockfish
     if not os.path.exists(Config.STOCKFISH_PATH):
-        print(f"⚠️ Stockfish not found at: {Config.STOCKFISH_PATH}")
-        print("  Install with: sudo apt-get install stockfish")
-        print("  Or update STOCKFISH_PATH in configuration")
+        #print(f"⚠️ Stockfish not found at: {Config.STOCKFISH_PATH}")
+        #print("  Install with: sudo apt-get install stockfish")
+        #print("  Or update STOCKFISH_PATH in configuration")
     
     while True:
-        print_menu()
+       print_menu()
         choice = get_user_input("Select option (1-9): ", type_func=int)
         
         if choice == 1:
@@ -930,10 +930,10 @@ def main():
         elif choice == 8:
             compare_with_stockfish()
         elif choice == 9:
-            print("\n👋 Goodbye!")
+            #print("\n👋 Goodbye!")
             break
         else:
-            print("❌ Invalid option. Please select 1-9.")
+            #print("❌ Invalid option. Please select 1-9.")
         
         input("\nPress Enter to continue...")
 
