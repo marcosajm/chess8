@@ -100,13 +100,13 @@ int parse_fen(const char *fen, Position *pos) {
     for (int sq = 0; sq < 64; sq++) {
         int r = sq / 8;
         int f = sq % 8;
-        printf("%2d -> %c%d\n", sq, 'a'+f, r+1);
+      //  printf("%2d -> %c%d\n", sq, 'a'+f, r+1);
     }
     
-    printf("[FEN] Parsed position, side=%s, castling=%d, ep=%d\n",
-        pos->side_to_move == WHITE ? "White" : "Black",
-        pos->castling_rights,
-        pos->en_passant);
+   // printf("[FEN] Parsed position, side=%s, castling=%d, ep=%d\n",
+ //       pos->side_to_move == WHITE ? "White" : "Black",
+ //       pos->castling_rights,
+ //       pos->en_passant);
 
     return 0;
 }

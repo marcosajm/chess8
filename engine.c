@@ -37,12 +37,12 @@ EXPORT void init_board_wasm() {
     update_occ(&global_pos);
     update_zobrist_key(&global_pos);
     promotion_pending = -1;
-    printf("[INIT] Board initialized with starting FEN\n");
-    print_board_state();
+   // printf("[INIT] Board initialized with starting FEN\n");
+    //print_board_state();
     if (!g_nnue.loaded) {
         if (nnue_load_weights_from_file(&g_nnue, "nnue.bin")) {
             nnue_level = 1;
-            printf("[NNUE] Active model: Level %d (nnue.bin)\n", nnue_level);
+          //  printf("[NNUE] Active model: Level %d (nnue.bin)\n", nnue_level);
         } else {
            fprintf(stderr, "Error loading NNUE weights\n");
         }
@@ -65,7 +65,7 @@ EXPORT int get_current_turn_wasm() {
 // UCI uses the actual move string; see UCI loop below.
 EXPORT int find_ai_move_wasm_depth(int ai_color, int depth) {
     if (global_pos.side_to_move != ai_color) {
-        printf("[AI] Skipped (AI: %s, Current: %s)\n", ai_color == WHITE ? "White" : "Black", global_pos.side_to_move == WHITE ? "White" : "Black");
+       // printf("[AI] Skipped (AI: %s, Current: %s)\n", ai_color == WHITE ? "White" : "Black", global_pos.side_to_move == WHITE ? "White" : "Black");
         return -1;
     }
 
@@ -75,14 +75,14 @@ EXPORT int find_ai_move_wasm_depth(int ai_color, int depth) {
 
     Move m = search_best_move(&global_pos, depth);
     if (!m) {
-        printf("[AI] No valid move found\n");
+       // printf("[AI] No valid move found\n");
         return -1;
     }
     int from = MOVE_FROM(m), to = MOVE_TO(m);
     char fs[3], ts[3];
     sq_name_idx(from, fs);
     sq_name_idx(to, ts);
-    printf("[AI] Selected %s -> %s (depth=%d)\n", fs, ts, depth);
+  //  printf("[AI] Selected %s -> %s (depth=%d)\n", fs, ts, depth);
     return from | (to << 8);
 }
 
@@ -112,7 +112,7 @@ EXPORT void promote_pawn_wasm(int sq, int piece_type) {
 
     static const char *names[] = {"Pawn","Knight","Bishop","Rook","Queen","King"};
     char sc[3]; sq_name_idx(sq, sc);
-    printf("[PROMO] %s at %s -> %s\n", side==WHITE?"White":"Black", sc, names[piece]);
+  //  printf("[PROMO] %s at %s -> %s\n", side==WHITE?"White":"Black", sc, names[piece]);
 
     // Replace pawn with promoted piece on that square and keep Zobrist consistent.
     // The base move left a pawn on `sq`; remove that pawn's bit/hash and add
@@ -126,7 +126,7 @@ EXPORT void promote_pawn_wasm(int sq, int piece_type) {
     update_occ(&global_pos);
 
     promotion_pending = -1;
-   print_board_state();
+   //print_board_state();
 }
 
 EXPORT int get_pawn_promotion_pending_index_wasm() {
@@ -144,20 +144,20 @@ EXPORT int get_game_state_wasm() {
         uint64_t kbb = global_pos.pieces[global_pos.side_to_move][KING];
         int king_sq = (kbb ? __builtin_ctzll(kbb) : -1);
         if (king_sq >= 0 && is_square_attacked(&global_pos, king_sq, (Side)(global_pos.side_to_move ^ 1))) {
-            printf("[STATE] Checkmate\n");
+          //  printf("[STATE] Checkmate\n");
             return 1;
         }
-        printf("[STATE] Stalemate\n");
+     //   printf("[STATE] Stalemate\n");
         return 2;
     }
 
     if (global_pos.halfmove_clock >= 50) {
-        printf("[STATE] Draw (50-move rule)\n");
+//printf("[STATE] Draw (50-move rule)\n");
         return 4;
     }
 
     if (check_threefold_repetition(&global_pos)) {
-        printf("[STATE] Draw (threefold repetition)\n");
+     //   printf("[STATE] Draw (threefold repetition)\n");
         return 3; // Use a new enum value for this
     }
 
@@ -167,13 +167,13 @@ EXPORT int get_game_state_wasm() {
             piece_count += popcount64(global_pos.pieces[s][p]);
 
     if (piece_count <= 4) {
-        printf("[STATE] Draw (insufficient material)\n");
+      //  printf("[STATE] Draw (insufficient material)\n");
         return 5;
     }
 
      // ... Insufficient material check ...
     
-    printf("[STATE] Ongoing\n");
+//printf("[STATE] Ongoing\n");
     return 0;
 }
 
@@ -202,7 +202,7 @@ EXPORT int set_difficulty_wasm(int level) {
         nnue_free(&g_nnue);
         g_nnue = candidate;
         nnue_level = level;
-        printf("[DIFFICULTY] Successfully loaded %s\n", model_path);
+       // printf("[DIFFICULTY] Successfully loaded %s\n", model_path);
         return 1;
     }
 
@@ -240,18 +240,18 @@ EXPORT int make_move_wasm(int from, int to) {
                 // apply_move(&global_pos, MOVE(from, to, FLAG_NONE));
                 update_occ(&global_pos);
                 //printf("[PROMO] Pending at %s\n", ts);
-               print_board_state();
+               //print_board_state();
                 return 2;
             }
             // Regular move (non-promotion)
             apply_move(&global_pos, m);
             update_occ(&global_pos);
             //printf("[MOVE] Applied %s -> %s\n", fs, ts);
-           print_board_state();
+           //print_board_state();
             return 1;
         }
     }
-    printf("[INVALID] %s -> %s\n", fs, ts);
+   // printf("[INVALID] %s -> %s\n", fs, ts);
     return 0;
 }
 
@@ -260,7 +260,7 @@ EXPORT void reset_game(Position *pos) {
     init_zobrist();
     update_zobrist_key(pos);
     update_occ(pos);
-    printf("[RESET] Game reset\n");
+   // printf("[RESET] Game reset\n");
 }
 
 // =======================

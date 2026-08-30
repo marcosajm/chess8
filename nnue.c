@@ -186,7 +186,7 @@ float nnue_forward_pos(const NNUEWeights *nn, const Position *pos) {
 }
 
 // ============== Debug/Info function (NEW) ==============
-void nnue_print_info(void) {
+/* void nnue_print_info(void) {
     printf("=== NNUE Network Information ===\n");
     printf("Architecture: %d -> %d -> %d -> %d -> %d\n", 
            NNUE_INPUT_DIM, NNUE_H1, NNUE_H2, NNUE_H3, NNUE_OUT);
@@ -202,4 +202,4 @@ void nnue_print_info(void) {
     printf("Total bytes: %zu (%.2f MB)\n", TOTAL_BYTES, 
            (float)TOTAL_BYTES / (1024 * 1024));
     printf("Loaded: %s\n", g_nnue.loaded ? "Yes" : "No");
-}
+} */

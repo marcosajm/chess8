@@ -47,6 +47,6 @@ float nnue_forward_vec(const NNUEWeights *nn, const float *x);
 float nnue_forward_pos(const NNUEWeights *nn, const Position *pos);
 
 // Optional: Add info function for debugging
-void nnue_print_info(void);
+//void nnue_print_info(void);
 
 #endif
