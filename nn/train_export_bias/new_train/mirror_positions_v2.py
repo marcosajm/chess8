@@ -234,7 +234,7 @@ def read_nnue_binary(filename: str) -> Tuple[List[Position], int]:
         if magic != b'NNUE':
             raise ValueError(f"Invalid magic number: {magic}. Expected 'NNUE'")
         
-        #print(f"📖 Reading {num_positions} positions from {filename}")
+        print(f"📖 Reading {num_positions} positions from {filename}")
         
         for i in range(num_positions):
             features_bytes = f.read(780 * 4)
@@ -256,12 +256,12 @@ def read_nnue_binary(filename: str) -> Tuple[List[Position], int]:
                 tactical_score=tactical_score
             ))
     
-    #print(f"✅ Successfully read {len(positions)} positions")
+    print(f"✅ Successfully read {len(positions)} positions")
     return positions, len(positions)
 
 def write_nnue_binary(filename: str, positions: List[Position]):
     """Writes NNUE binary file"""
-    #print(f"💾 Writing {len(positions)} positions to {filename}")
+    print(f"💾 Writing {len(positions)} positions to {filename}")
     
     with open(filename, 'wb') as f:
         f.write(struct.pack('4sI', b'NNUE', len(positions)))
@@ -271,7 +271,7 @@ def write_nnue_binary(filename: str, positions: List[Position]):
             f.write(struct.pack('fff', pos.score, pos.result, pos.tactical_score))
     
     file_size = os.path.getsize(filename) / (1024 * 1024)
-    #print(f"✅ Successfully saved to {filename} ({file_size:.2f} MB)")
+    print(f"✅ Successfully saved to {filename} ({file_size:.2f} MB)")
 
 def mirror_positions_corrected(positions: List[Position]) -> List[Position]:
     """
@@ -283,7 +283,7 @@ def mirror_positions_corrected(positions: List[Position]) -> List[Position]:
     - If original result = 0.0 (Black wins), mirrored result = 1.0 (White wins)
     - If draw (0.5), stays 0.5
     """
-    #print(f"🔄 Mirroring {len(positions)} positions with CORRECT result flipping...")
+    print(f"🔄 Mirroring {len(positions)} positions with CORRECT result flipping...")
     
     mirrored_positions = []
     total = len(positions)
@@ -326,24 +326,24 @@ def mirror_positions_corrected(positions: List[Position]) -> List[Position]:
         
         if (idx + 1) % progress_interval == 0:
             progress = (idx + 1) / total * 100
-            #print(f"  Progress: {progress:.0f}% ({idx + 1}/{total})")
+            print(f"  Progress: {progress:.0f}% ({idx + 1}/{total})")
     
     # #print statistics
-    #print(f"\n📊 Result distribution:")
-    #print(f"  Original:  White wins: {results_original[1.0]}, Black wins: {results_original[0.0]}, Draws: {results_original[0.5]}")
-    #print(f"  Mirrored:  White wins: {results_mirrored[1.0]}, Black wins: {results_mirrored[0.0]}, Draws: {results_mirrored[0.5]}")
+    print(f"\n📊 Result distribution:")
+    print(f"  Original:  White wins: {results_original[1.0]}, Black wins: {results_original[0.0]}, Draws: {results_original[0.5]}")
+    print(f"  Mirrored:  White wins: {results_mirrored[1.0]}, Black wins: {results_mirrored[0.0]}, Draws: {results_mirrored[0.5]}")
     
     # Verify balance
     total_orig_wins = results_original[1.0] + results_original[0.0]
     total_mirr_wins = results_mirrored[1.0] + results_mirrored[0.0]
     
     if results_original[1.0] > 0 and results_mirrored[0.0] > 0:
-        #print(f"\n✅ Result flipping correct!")
-        #print(f"   Original White wins: {results_original[1.0]} -> Mirrored Black wins: {results_mirrored[0.0]}")
+        print(f"\n✅ Result flipping correct!")
+        print(f"   Original White wins: {results_original[1.0]} -> Mirrored Black wins: {results_mirrored[0.0]}")
     else:
-        #print(f"\n⚠️  Warning: No result flipping detected! Check your data.")
+        print(f"\n⚠️  Warning: No result flipping detected! Check your data.")
     
-    #print(f"✅ Created {len(mirrored_positions)} mirrored positions")
+    print(f"✅ Created {len(mirrored_positions)} mirrored positions")
     return mirrored_positions
 
 def analyze_dataset(positions: List[Position], name: str = "Dataset"):
@@ -356,26 +356,26 @@ def analyze_dataset(positions: List[Position], name: str = "Dataset"):
     black_wins = sum(1 for p in positions if p.result == 0.0)
     draws = sum(1 for p in positions if p.result == 0.5)
     
-    #print(f"\n📊 {name} Analysis:")
-    #print(f"  Total positions: {total}")
-    #print(f"  White wins: {white_wins} ({white_wins/total*100:.1f}%)")
-    #print(f"  Black wins: {black_wins} ({black_wins/total*100:.1f}%)")
-    #print(f"  Draws: {draws} ({draws/total*100:.1f}%)")
+    print(f"\n📊 {name} Analysis:")
+    print(f"  Total positions: {total}")
+    print(f"  White wins: {white_wins} ({white_wins/total*100:.1f}%)")
+    print(f"  Black wins: {black_wins} ({black_wins/total*100:.1f}%)")
+    print(f"  Draws: {draws} ({draws/total*100:.1f}%)")
     
     # Check balance
     if white_wins > 0 and black_wins > 0:
         ratio = max(white_wins, black_wins) / min(white_wins, black_wins)
         if ratio > 1.5:
-            #print(f"  ⚠️  Dataset is imbalanced (ratio: {ratio:.2f}:1)")
+            print(f"  ⚠️  Dataset is imbalanced (ratio: {ratio:.2f}:1)")
         else:
-            #print(f"  ✅ Dataset is well balanced (ratio: {ratio:.2f}:1)")
+            print(f"  ✅ Dataset is well balanced (ratio: {ratio:.2f}:1)")
 
 # ============== Main ==============
 def main():
-    #print("\n" + "="*80)
-    #print("🪞 NNUE DATA MIRROR TOOL - CORRECTED VERSION")
-    #print("   (With proper result flipping for mirrored positions)")
-    #print("="*80)
+    print("\n" + "="*80)
+    print("🪞 NNUE DATA MIRROR TOOL - CORRECTED VERSION")
+    print("   (With proper result flipping for mirrored positions)")
+    print("="*80)
     
     # Configure input file
     if len(sys.argv) > 1:
@@ -390,9 +390,9 @@ def main():
         base_name = os.path.splitext(input_file)[0]
         output_file = f"{base_name}_mirrored_corrected.bin"
     
-    #print(f"📁 Input file:  {input_file}")
-    #print(f"📁 Output file: {output_file}")
-    #print("="*80)
+    print(f"📁 Input file:  {input_file}")
+    print(f"📁 Output file: {output_file}")
+    print("="*80)
     
     try:
         # Read original data
@@ -416,14 +416,14 @@ def main():
         # Save combined data
         write_nnue_binary(output_file, all_positions)
         
-        #print("\n" + "="*80)
-        #print("✅ Mirroring complete!")
-        #print(f"  Original: {input_file} ({len(positions)} positions)")
-        #print(f"  Output:   {output_file} ({len(all_positions)} positions)")
-        #print("="*80 + "\n")
+        print("\n" + "="*80)
+        print("✅ Mirroring complete!")
+        print(f"  Original: {input_file} ({len(positions)} positions)")
+        print(f"  Output:   {output_file} ({len(all_positions)} positions)")
+        print("="*80 + "\n")
         
     except Exception as e:
-        #print(f"\n❌ Error: {e}")
+        print(f"\n❌ Error: {e}")
         import traceback
         traceback.#print_exc()
         sys.exit(1)

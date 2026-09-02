@@ -1,0 +1,14 @@
+{
+  "total": 41979,
+  "exported": 20000,
+  "positions": [
+    {
+      "id": 0,
+      "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+      "score": 0.4000000059604645,
+      "result": 0.0,
+      "tactical": 0.0,
+      "phase": "Abertura",
+      "legal_moves": 20,
+      "extra_features": {
+        "castling_white_kingside": 

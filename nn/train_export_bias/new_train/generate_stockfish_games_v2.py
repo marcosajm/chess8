@@ -24,7 +24,7 @@ class Config:
     
     # Data generation
     DEPTH = 24
-    NUM_GAMES = 18
+    NUM_GAMES = 6
     MAX_MOVES = 220
     STOCKFISH_PATH = "/usr/games/stockfish"
     
@@ -37,7 +37,7 @@ class Config:
     # 'best' = always best moves
     # 'alternating' = 1 best move, then 2 worst moves (repeating)
     # 'two_best_three_worst' = 2 best moves, then 3 worst moves (repeating)
-    OUR_BOT_PLAY_STYLE = 'alternating'
+    OUR_BOT_PLAY_STYLE = 'best'
     
     # Number of moves considered "opening" (after that it's "endgame")
     OPENING_MOVES = 4

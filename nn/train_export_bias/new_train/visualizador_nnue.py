@@ -233,34 +233,34 @@ def visualize_position(position: Dict, index: int, show_board: bool = True):
     analysis = analyze_features(features)
     
     # ===== CABEÇALHO =====
-    #print(f"\n{'='*80}")
-    #print(f"📍 POSIÇÃO #{index}")
-    #print(f"{'='*80}")
+    print(f"\n{'='*80}")
+    print(f"📍 POSIÇÃO #{index}")
+    print(f"{'='*80}")
     
     # ===== POSIÇÃO =====
-    #print(f"\n{'='*30} POSIÇÃO {'='*30}")
-    #print(board)
-    #print(f"\n📊 FEN: {board.fen()}")
-    #print(f"🎯 Vez: {'Brancas' if board.turn == chess.WHITE else 'Pretas'}")
-    #print(f"📋 Movimentos legais: {details['legal_moves']}")
+    print(f"\n{'='*30} POSIÇÃO {'='*30}")
+    print(board)
+    print(f"\n📊 FEN: {board.fen()}")
+    print(f"🎯 Vez: {'Brancas' if board.turn == chess.WHITE else 'Pretas'}")
+    print(f"📋 Movimentos legais: {details['legal_moves']}")
     
     # ===== DETALHES =====
-    #print(f"\n{'='*30} DETALHES {'='*30}")
-    #print(f"🔹 Fase do jogo: {details['phase']}")
-    #print(f"🔹 Peças no tabuleiro: {details['piece_count']}")
-    #print(f"🔹 Material: Brancas {details['material_balance']:.1f} vs Pretas")
-    #print(f"🔹 Em xeque: {'Sim' if details['is_check'] else 'Não'}")
-    #print(f"🔹 Xeque-mate: {'Sim' if details['is_checkmate'] else 'Não'}")
-    #print(f"🔹 Afogamento: {'Sim' if details['is_stalemate'] else 'Não'}")
-    #print(f"🔹 Final de jogo: {'Sim' if details['is_endgame'] else 'Não'}")
-    #print(f"🔹 Atacantes estimados: {details['attackers']}")
+    print(f"\n{'='*30} DETALHES {'='*30}")
+    print(f"🔹 Fase do jogo: {details['phase']}")
+    print(f"🔹 Peças no tabuleiro: {details['piece_count']}")
+    print(f"🔹 Material: Brancas {details['material_balance']:.1f} vs Pretas")
+    print(f"🔹 Em xeque: {'Sim' if details['is_check'] else 'Não'}")
+    print(f"🔹 Xeque-mate: {'Sim' if details['is_checkmate'] else 'Não'}")
+    print(f"🔹 Afogamento: {'Sim' if details['is_stalemate'] else 'Não'}")
+    print(f"🔹 Final de jogo: {'Sim' if details['is_endgame'] else 'Não'}")
+    print(f"🔹 Atacantes estimados: {details['attackers']}")
     
     # ===== AVALIAÇÕES =====
-    #print(f"\n{'='*30} AVALIAÇÕES {'='*30}")
-    #print(f"🎯 Score Stockfish:      {score:+.3f} (centipawns: {score*100:.1f})")
-    #print(f"🎯 Score Tático:         {tactical:+.3f}")
-    #print(f"🎯 Score Combinado:      {score*0.7 + tactical*0.3:+.3f}")
-    #print(f"🎯 Resultado final:      {result:.2f} {'(Vitória Brancas)' if result == 1 else '(Vitória Pretas)' if result == 0 else '(Empate)'}")
+    print(f"\n{'='*30} AVALIAÇÕES {'='*30}")
+    print(f"🎯 Score Stockfish:      {score:+.3f} (centipawns: {score*100:.1f})")
+    print(f"🎯 Score Tático:         {tactical:+.3f}")
+    print(f"🎯 Score Combinado:      {score*0.7 + tactical*0.3:+.3f}")
+    print(f"🎯 Resultado final:      {result:.2f} {'(Vitória Brancas)' if result == 1 else '(Vitória Pretas)' if result == 0 else '(Empate)'}")
     
     # Interpretação do Score
     if abs(score) < 0.5:
@@ -280,17 +280,17 @@ def visualize_position(position: Dict, index: int, show_board: bool = True):
         else:
             interpretation = "🔥  Vantagem decisiva das Pretas"
     
-    #print(f"💡 Interpretação: {interpretation}")
+    print(f"💡 Interpretação: {interpretation}")
     
     # ===== FEATURES EXTRAS =====
-    #print(f"\n{'='*30} FEATURES EXTRAS (12) {'='*30}")
-    #print(f"📋 Ativas: {analysis['active_features']} posições ocupadas")
-    #print()
+    print(f"\n{'='*30} FEATURES EXTRAS (12) {'='*30}")
+    print(f"📋 Ativas: {analysis['active_features']} posições ocupadas")
+    print()
     
     # Formatação em tabela
-    #print("┌────────────────────────┬──────────┬─────────────────────────────┐")
-    #print("│ Feature                │ Valor    │ Interpretação               │")
-    #print("├────────────────────────┼──────────┼─────────────────────────────┤")
+    print("┌────────────────────────┬──────────┬─────────────────────────────┐")
+    print("│ Feature                │ Valor    │ Interpretação               │")
+    print("├────────────────────────┼──────────┼─────────────────────────────┤")
     
     feature_descriptions = [
         ('Roque rei (brancas)', analysis['extra_features']['castling_white_kingside'], 
@@ -320,9 +320,9 @@ def visualize_position(position: Dict, index: int, show_board: bool = True):
     ]
     
     for name, value, desc in feature_descriptions:
-        #print(f"│ {name:22} │ {value:8.3f} │ {desc:27} │")
+        print(f"│ {name:22} │ {value:8.3f} │ {desc:27} │")
     
-    #print("└────────────────────────┴──────────┴─────────────────────────────┘")
+    print("└────────────────────────┴──────────┴─────────────────────────────┘")
     
     return board
 
@@ -345,7 +345,7 @@ def export_to_csv(filename: str, output: str = "positions.csv", max_positions: i
             row.extend(pos['features'].tolist())
             writer.writerow(row)
     
-    #print(f"✅ Exportado para {output}")
+    print(f"✅ Exportado para {output}")
 
 def export_to_json(filename: str, output: str = "positions.json", max_positions: int = 20):
     """Exporta posições para JSON com metadados"""
@@ -375,16 +375,16 @@ def export_to_json(filename: str, output: str = "positions.json", max_positions:
     with open(output, 'w') as f:
         json.dump(data, f, indent=2)
     
-    #print(f"✅ Exportado para {output}")
+    print(f"✅ Exportado para {output}")
 
 # ============== FUNÇÃO PRINCIPAL ==============
 
 def main():
     """Função principal com menu interativo"""
     
-    #print("="*80)
-    #print("🔍 VISUALIZADOR DE DADOS NNUE")
-    #print("="*80)
+    print("="*80)
+    print("🔍 VISUALIZADOR DE DADOS NNUE")
+    print("="*80)
     
     # Pede arquivo
     filename = input(f"\n📁 Arquivo de dados [{CONFIG['DATA_FILE']}]: ").strip()
@@ -394,18 +394,18 @@ def main():
     try:
         # Carrega dados
         positions, total = read_positions(filename, max_positions=100)
-        #print(f"\n✅ Carregado {len(positions)} posições de {total}")
+        print(f"\n✅ Carregado {len(positions)} posições de {total}")
         
         while True:
-            #print("\n" + "="*80)
-            #print("📋 MENU:")
-            #print("  1. Ver próxima posição")
-            #print("  2. Ver posição específica")
-            #print("  3. Ver posições aleatórias")
-            #print("  4. Exportar para CSV")
-            #print("  5. Exportar para JSON")
-            #print("  6. Estatísticas do dataset")
-            #print("  7. Sair")
+            print("\n" + "="*80)
+            print("📋 MENU:")
+            print("  1. Ver próxima posição")
+            print("  2. Ver posição específica")
+            print("  3. Ver posições aleatórias")
+            print("  4. Exportar para CSV")
+            print("  5. Exportar para JSON")
+            print("  6. Estatísticas do dataset")
+            print("  7. Sair")
             
             option = input("\nEscolha uma opção: ").strip()
             
@@ -418,7 +418,7 @@ def main():
                 
                 if main.current_idx >= len(positions):
                     main.current_idx = 0
-                    #print("\n🔄 Voltando ao início")
+                    print("\n🔄 Voltando ao início")
                 
                 visualize_position(positions[main.current_idx], main.current_idx)
                 input("\nPressione Enter para continuar...")
@@ -430,7 +430,7 @@ def main():
                     visualize_position(positions[idx], idx)
                     main.current_idx = idx
                 else:
-                    #print("❌ Índice inválido!")
+                    print("❌ Índice inválido!")
                 input("\nPressione Enter para continuar...")
                 
             elif option == '3':
@@ -440,7 +440,7 @@ def main():
                 for _ in range(min(num, 10)):
                     idx = random.randint(0, len(positions)-1)
                     visualize_position(positions[idx], idx)
-                    #print("\n" + "-"*80)
+                    print("\n" + "-"*80)
                 input("\nPressione Enter para continuar...")
                 
             elif option == '4':
@@ -457,50 +457,50 @@ def main():
                 
             elif option == '6':
                 # Estatísticas
-               print_statistics(positions)
+                print_statistics(positions)
                 input("\nPressione Enter para continuar...")
                 
             elif option == '7':
-                #print("\n👋 Saindo...")
+                print("\n👋 Saindo...")
                 break
             else:
-                #print("❌ Opção inválida!")
+                print("❌ Opção inválida!")
                 
     except FileNotFoundError:
-        #print(f"❌ Arquivo não encontrado: {filename}")
+        print(f"❌ Arquivo não encontrado: {filename}")
     except Exception as e:
-        #print(f"❌ Erro: {e}")
+        print(f"❌ Erro: {e}")
 
-defprint_statistics(positions: List[Dict]):
+def print_statistics(positions: List[Dict]):
     """Imprime estatísticas do dataset"""
-    #print("\n" + "="*80)
-    #print("📊 ESTATÍSTICAS DO DATASET")
-    #print("="*80)
+    print("\n" + "="*80)
+    print("📊 ESTATÍSTICAS DO DATASET")
+    print("="*80)
     
     scores = [p['score'] for p in positions]
     results = [p['result'] for p in positions]
     tacticals = [p['tactical'] for p in positions]
     
-    #print(f"\n📈 Estatísticas dos Scores:")
-    #print(f"  Média:    {np.mean(scores):+.3f}")
-    #print(f"  Mediana:  {np.median(scores):+.3f}")
-    #print(f"  Std Dev:  {np.std(scores):.3f}")
-    #print(f"  Mínimo:   {np.min(scores):+.3f}")
-    #print(f"  Máximo:   {np.max(scores):+.3f}")
+    print(f"\n📈 Estatísticas dos Scores:")
+    print(f"  Média:    {np.mean(scores):+.3f}")
+    print(f"  Mediana:  {np.median(scores):+.3f}")
+    print(f"  Std Dev:  {np.std(scores):.3f}")
+    print(f"  Mínimo:   {np.min(scores):+.3f}")
+    print(f"  Máximo:   {np.max(scores):+.3f}")
     
-    #print(f"\n📈 Estatísticas dos Resultados:")
+    print(f"\n📈 Estatísticas dos Resultados:")
     wins = sum(1 for r in results if r == 1.0)
     draws = sum(1 for r in results if r == 0.5)
     losses = sum(1 for r in results if r == 0.0)
     
-    #print(f"  Vitórias Brancas: {wins} ({wins/len(results)*100:.1f}%)")
-    #print(f"  Empates:          {draws} ({draws/len(results)*100:.1f}%)")
-    #print(f"  Vitórias Pretas:  {losses} ({losses/len(results)*100:.1f}%)")
+    print(f"  Vitórias Brancas: {wins} ({wins/len(results)*100:.1f}%)")
+    print(f"  Empates:          {draws} ({draws/len(results)*100:.1f}%)")
+    print(f"  Vitórias Pretas:  {losses} ({losses/len(results)*100:.1f}%)")
     
-    #print(f"\n📈 Estatísticas Táticas:")
-    #print(f"  Média:    {np.mean(tacticals):+.3f}")
-    #print(f"  Std Dev:  {np.std(tacticals):.3f}")
-    #print(f"  Máximo:   {np.max(tacticals):+.3f}")
+    print(f"\n📈 Estatísticas Táticas:")
+    print(f"  Média:    {np.mean(tacticals):+.3f}")
+    print(f"  Std Dev:  {np.std(tacticals):.3f}")
+    print(f"  Máximo:   {np.max(tacticals):+.3f}")
 
 if __name__ == "__main__":
     main()

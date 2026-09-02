@@ -27,12 +27,12 @@ class Config:
     
     # Training parameters
     BATCH_SIZE = 2048
-    LEARNING_RATE = 0.0005
-    EPOCHS = 300
+    LEARNING_RATE = 0.00018
+    EPOCHS = 360
     VALIDATION_SPLIT = 0.15
     WEIGHT_DECAY = 1e-4
     GRADIENT_CLIP = 1.0
-    PATIENCE = 20
+    PATIENCE = 36
     DROPOUT_RATE = 0.15
     
     # Input data file (supports both formats)

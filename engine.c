@@ -185,8 +185,8 @@ EXPORT int evaluate_board() {
 }
 
 EXPORT int set_difficulty_wasm(int level) {
-    if (level < 1 || level > 5) {
-        fprintf(stderr, "[DIFFICULTY] Invalid level: %d (must be 1-5)\n", level);
+    if (level < 1 || level > 9) {
+        fprintf(stderr, "[DIFFICULTY] Invalid level: %d (must be 1-9)\n", level);
         return 0;
     }
 
@@ -202,7 +202,7 @@ EXPORT int set_difficulty_wasm(int level) {
         nnue_free(&g_nnue);
         g_nnue = candidate;
         nnue_level = level;
-       // printf("[DIFFICULTY] Successfully loaded %s\n", model_path);
+        printf("[DIFFICULTY] Successfully loaded %s\n", model_path);
         return 1;
     }
 

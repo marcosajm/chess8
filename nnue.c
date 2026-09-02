@@ -137,7 +137,7 @@ bool nnue_load_weights_from_file(NNUEWeights *nn, const char *path) {
 float nnue_forward_vec(const NNUEWeights *nn, const float *x) {
     if (!nn || !nn->loaded) return 0.0f;
 
-    // Layer 1: 780 -> 256 (UNCHANGED)
+    // Layer 1: 780 -> 256
     float h1[NNUE_H1];
     for (int o = 0; o < NNUE_H1; o++) {
         float sum = nn->b1[o];
