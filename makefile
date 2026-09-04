@@ -10,7 +10,7 @@ TARGET_NATIVE = chess_engine
 # Emscripten settings
 EMSDK_DIR = /home/marcos/emsdk
 EMCC = emcc
-EMCC_FLAGS = -O0 -std=c23 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s INITIAL_MEMORY=256MB -s MAXIMUM_MEMORY=2048MB --preload-file public/nnue.bin@nnue.bin --preload-file public/nnue2.bin@nnue2.bin --preload-file public/nnue3.bin@nnue3.bin --preload-file public/nnue4.bin@nnue4.bin --preload-file public/nnue5.bin@nnue5.bin \
+EMCC_FLAGS = -O0 -std=c23 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s INITIAL_MEMORY=256MB -s MAXIMUM_MEMORY=2048MB --preload-file public/nnue.bin@nnue.bin --preload-file public/nnue2.bin@nnue2.bin --preload-file public/nnue3.bin@nnue3.bin --preload-file public/nnue4.bin@nnue4.bin --preload-file public/nnue5.bin@nnue5.bin --preload-file public/nnue6.bin@nnue6.bin --preload-file public/nnue7.bin@nnue7.bin --preload-file public/nnue8.bin@nnue8.bin --preload-file public/nnue9.bin@nnue9.bin \
 			 -s EXPORTED_FUNCTIONS="['_init_board_wasm', '_get_board_ptr_wasm', '_make_move_wasm', '_get_current_turn_wasm', '_find_ai_move_wasm', '_find_ai_move_wasm_depth', '_promote_pawn_wasm', '_get_pawn_promotion_pending_index_wasm', '_get_game_state_wasm', '_evaluate_board', '_set_difficulty_wasm', '_get_empty']" \
              -s EXPORTED_RUNTIME_METHODS="['cwrap', 'ccall', 'getValue', 'setValue', 'HEAP8']" \
              -s ENVIRONMENT=web -s MODULARIZE=1 -s EXPORT_NAME=ChessModule -g

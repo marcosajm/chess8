@@ -30,8 +30,8 @@ class Config:
     
     # Training parameters
     BATCH_SIZE = 2048
-    LEARNING_RATE = 0.00018
-    EPOCHS = 400
+    LEARNING_RATE = 0.00006
+    EPOCHS = 600
     VALIDATION_SPLIT = 0.15
     WEIGHT_DECAY = 1e-4
     GRADIENT_CLIP = 1.0
@@ -49,8 +49,8 @@ class Config:
     CHECKPOINT_DIR = "checkpoints_prod"
     
     # Seed optimization
-    SEED_SEARCH_RANGE = 100  # Number of random seeds to test
-    SEED_SEARCH_EPOCHS = 10  # Quick epochs for seed evaluation
+    SEED_SEARCH_RANGE = 500  # Number of random seeds to test
+    SEED_SEARCH_EPOCHS = 48  # Quick epochs for seed evaluation
     BEST_SEED_FILE = "best_seed.json"  # File to store best seed
 
 # ============== Model ==============
@@ -167,9 +167,9 @@ class NNUEProduction(nn.Module):
             data.astype(np.float32).tofile(filepath)
             print(f"  {name}: {data.shape} -> {filepath}")
 
-# ============== Dataset ==============
+# ============== Dataset ==============       Best so NEW BEST: seed= 213729 727452 --- 658732 419356 898647 521159 99177 901702 145783 777845 391302(best)
 class NNUE_Dataset(Dataset):
-    def __init__(self, data_file: str, seed: int = 19, shuffle: bool = True):
+    def __init__(self, data_file: str, seed: int = 99177, shuffle: bool = True):
         # Set seed for reproducibility
         self.seed = seed
         self._set_seed(seed)
@@ -223,7 +223,7 @@ class NNUE_Dataset(Dataset):
                 score, result, tactical = struct.unpack('fff', f.read(12))
                 
                 # Combine scores - emphasize tactical awareness
-                combined_score = score * 0.76 + tactical * 0.24
+                combined_score = score * 0.64 + tactical * 0.36
                 self.scores[i] = combined_score
         
         print(f"Loaded {len(self.features)} positions")
@@ -307,7 +307,7 @@ def quick_evaluate_seed(seed: int, dataset: NNUE_Dataset) -> Tuple[float, int]:
     patience_counter = 0
     
     # Quick training for seed evaluation
-    eval_epochs = min(Config.SEED_SEARCH_EPOCHS, 20)  # Cap at 20 epochs
+    eval_epochs = min(Config.SEED_SEARCH_EPOCHS, 32)  # Cap at 20 epochs
     
     for epoch in range(eval_epochs):
         model.train()
@@ -368,6 +368,8 @@ def find_best_seed():
     
     results = []
     start_time = time.time()
+    best_seed_so_far = None
+    best_loss_so_far = float('inf')
     
     # Test random seeds
     for i in range(Config.SEED_SEARCH_RANGE):
@@ -380,13 +382,19 @@ def find_best_seed():
                 'epoch': epoch
             })
             
+            # Update best if this is better
+            if val_loss < best_loss_so_far:
+                best_loss_so_far = val_loss
+                best_seed_so_far = seed
+                print(f"  🏆 NEW BEST: seed={seed}, loss={val_loss:.6f}")
+            
             # Progress update every 10 seeds
             if (i + 1) % 10 == 0:
                 elapsed = time.time() - start_time
                 avg_time = elapsed / (i + 1)
                 remaining = avg_time * (Config.SEED_SEARCH_RANGE - i - 1)
                 print(f"\n📊 Progress: {i+1}/{Config.SEED_SEARCH_RANGE} seeds tested")
-                print(f"   Best so far: seed={results[0]['seed']}, loss={results[0]['val_loss']:.6f}")
+                print(f"   Best so far: seed={best_seed_so_far}, loss={best_loss_so_far:.6f}")
                 print(f"   Elapsed: {elapsed/60:.1f}min, ETA: {remaining/60:.1f}min")
                 
         except Exception as e:
@@ -405,11 +413,24 @@ def find_best_seed():
     for i, result in enumerate(results[:10]):
         print(f"  #{i+1}: seed={result['seed']:>6d}, loss={result['val_loss']:.6f}, epoch={result['epoch']}")
     
-    # Save results to file
-    results_file = "seed_search_results.json"
+    # Show all results in a summary
+    print(f"\n📈 Summary:")
+    print(f"  Best seed: {results[0]['seed']} (loss={results[0]['val_loss']:.6f})")
+    print(f"  Worst seed: {results[-1]['seed']} (loss={results[-1]['val_loss']:.6f})")
+    print(f"  Average loss: {np.mean([r['val_loss'] for r in results]):.6f}")
+    print(f"  Std deviation: {np.std([r['val_loss'] for r in results]):.6f}")
+    
+    # Save all results to file
+    results_file = "seed_search_results_full.json"
     with open(results_file, 'w') as f:
-        json.dump(results[:10], f, indent=2)
-    print(f"\n💾 Top 10 results saved to {results_file}")
+        json.dump(results, f, indent=2)
+    print(f"\n💾 All results saved to {results_file}")
+    
+    # Save top 20 results to a separate file
+    top20_file = "seed_search_top10.json"
+    with open(top20_file, 'w') as f:
+        json.dump(results[:20], f, indent=2)
+    print(f"💾 Top 10 results saved to {top20_file}")
     
     # Save best seed
     best_seed = results[0]['seed']
@@ -420,7 +441,8 @@ def find_best_seed():
         'best_loss': best_loss,
         'search_range': Config.SEED_SEARCH_RANGE,
         'eval_epochs': Config.SEED_SEARCH_EPOCHS,
-        'timestamp': time.strftime('%Y-%m-%d %H:%M:%S')
+        'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'),
+        'all_results': results  # Store all results for reference
     }
     
     with open(Config.BEST_SEED_FILE, 'w') as f:
@@ -773,4 +795,6 @@ if __name__ == "__main__":
 #python script.py --seed 42
 
 # Use random seed (ignore best seed)
-##python script.py --no-best-seed##
+##python script.py --no-best-seed
+# 
+# ##
