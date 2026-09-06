@@ -34,8 +34,8 @@ class Config:
     NNUE_OUT = 1
     
     # my training parameters - OPTIMIZED FOR 50k POSITIONS
-    BATCH_SIZE = 512  # Smaller batch for better generalization
-    LEARNING_RATE = 0.004  # Start here, use cosine annealing or reduce on plateau
+    BATCH_SIZE = 256  # Smaller batch for better generalization
+    LEARNING_RATE = 0.0041  # Start here, use cosine annealing or reduce on plateau
     EPOCHS = 150  # More epochs needed with lower LR
     VALIDATION_SPLIT = 0.15  # Slightly more validation data
     WEIGHT_DECAY = 2e-3    # Reduced from 1e-4 to prevent underfitting
@@ -174,7 +174,7 @@ class NNUEProduction(nn.Module):
             data.astype(np.float32).tofile(filepath)
             print(f"  {name}: {data.shape} -> {filepath}")
 
-# ============== Dataset ==============NEW BEST: seed 856887 710018 481059 782267 456795 12211, 974079, 418284,753300 226721, 326580, 969737 270823, 976779 810523 213729 727452 658732 419356 898647 521159 99177 901702 145783 777845 391302(best)
+# ============== Dataset ==============NEW BEST: seed 962323 856887 710018 481059 782267 456795 12211, 974079, 418284,753300 226721, 326580, 969737 270823, 976779 810523 213729 727452 658732 419356 898647 521159 99177 901702 145783 777845 391302(best)
 class NNUE_Dataset(Dataset):
     def __init__(self, data_file: str, seed: int = 710018, shuffle: bool = True):
         # Set seed for reproducibility
