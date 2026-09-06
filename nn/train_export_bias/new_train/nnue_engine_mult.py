@@ -1301,8 +1301,9 @@ def run_enhanced_tournament():
     if export == 'y':
         tournament.export_stats_to_csv()
         
+# Update the tournament runner function
 def run_enhanced_tournament():
-    """Run tournament with extended metrics"""
+    """Run enhanced tournament with both methods and detailed stats"""
     print("\n" + "=" * 80)
     print("🏆 Enhanced NNUE Tournament - With Detailed Metrics")
     print("=" * 80)
@@ -1321,17 +1322,30 @@ def run_enhanced_tournament():
         print("\n⚠️  Need at least 2 models to run a tournament.")
         return
     
-    # Run tournament
-    games_per_pairing = 2  # Home and away
-    print(f"\nRunning round-robin with {games_per_pairing} games per pairing...")
-    tournament.round_robin(games_per_pairing=games_per_pairing)
+    # Method selection
+    print("\nMethod:")
+    print("  1. Round-robin  — each NNUE plays every other NNUE (recommended)")
+    print("  2. vs Stockfish — each NNUE plays N games vs Stockfish")
+    method = input("Choose method (1-2, default 1): ").strip() or "1"
     
-    # Print detailed results
+    if method == "2":
+        n = input("Games per model vs Stockfish (default 5): ").strip()
+        n = int(n) if n else 5
+        tournament.vs_stockfish_benchmark(num_games=n)
+    else:
+        g = input("Games per pairing (default 2 = home & away): ").strip()
+        g = int(g) if g else 2
+        tournament.round_robin(games_per_pairing=g)
+    
+    # Print comprehensive results
     tournament.print_detailed_ranking()
     tournament.print_game_stats_summary()
     
     # Export to CSV
-    tournament.export_stats_to_csv()
+    export = input("\nExport stats to CSV? (y/n, default n): ").strip().lower()
+    if export == 'y':
+        tournament.export_stats_to_csv()
+
 
 # ============== Test Functions ==============
 def run_stockfish_test(num_games: int = 5):
