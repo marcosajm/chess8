@@ -471,7 +471,7 @@ class NNUETournament:
     
     def play_match_vs_stockfish(self, nnue_model: Dict, sf: StockfishGame,
                                 nnue_color: chess.Color, time_limit: float = 0.05,
-                                sf_time: float = 0.3, max_moves: int = 60) -> str:
+                                sf_time: float = 0.3, max_moves: int = 160) -> str:
         """Play one game between a NNUE model and Stockfish."""
         eng = self._get_engine(nnue_model)
         board = chess.Board()
@@ -519,7 +519,7 @@ class NNUETournament:
     
     # ---------- modes ----------
     def round_robin(self, games_per_pairing: int = 2, time_limit: float = 0.05,
-                    max_moves: int = 60):
+                    max_moves: int = 160):
         """Each model plays every other model. games_per_pairing=2 = home & away."""
         from itertools import combinations
         self.method = f"Round-robin ({games_per_pairing} games/pairing)"
@@ -553,7 +553,7 @@ class NNUETournament:
         print(f"Done: {done} games played.")
     
     def vs_stockfish_benchmark(self, num_games: int = 5, time_limit: float = 0.05,
-                               sf_time: float = 0.3, max_moves: int = 60):
+                               sf_time: float = 0.3, max_moves: int = 160):
         """Each model plays num_games vs Stockfish (alternating colors)."""
         self.method = f"vs Stockfish ({num_games} games/model)"
         sf = StockfishGame()
@@ -763,7 +763,7 @@ class EnhancedNNUETournament(NNUETournament):
     
     def play_match_vs_stockfish_with_metrics(self, nnue_model: Dict, sf: StockfishGame,
                                              nnue_color: chess.Color, time_limit: float = 0.05,
-                                             sf_time: float = 0.3, max_moves: int = 60) -> Dict:
+                                             sf_time: float = 0.3, max_moves: int = 160) -> Dict:
         """Play one game vs Stockfish and collect detailed metrics"""
         start_time = time.time()
         
@@ -967,7 +967,7 @@ class EnhancedNNUETournament(NNUETournament):
         metrics["avg_game_time"] = metrics["total_game_time"] / metrics["total_games"]
     
     def round_robin(self, games_per_pairing: int = 2, time_limit: float = 0.05,
-                    max_moves: int = 60):
+                    max_moves: int = 160):
         """Override to use enhanced match tracking"""
         from itertools import combinations
         self.method = f"Round-robin ({games_per_pairing} games/pairing)"
@@ -1000,7 +1000,7 @@ class EnhancedNNUETournament(NNUETournament):
         print(f"Done: {done} games played.")
     
     def vs_stockfish_benchmark(self, num_games: int = 5, time_limit: float = 0.05,
-                               sf_time: float = 0.3, max_moves: int = 60):
+                               sf_time: float = 0.3, max_moves: int = 160):
         """Override to use enhanced Stockfish match tracking"""
         self.method = f"vs Stockfish ({num_games} games/model)"
         sf = StockfishGame()
