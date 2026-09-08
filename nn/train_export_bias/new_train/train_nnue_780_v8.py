@@ -35,8 +35,8 @@ class Config:
 
     # Training parameters optimized for 55k positions
     BATCH_SIZE = 512  
-    LEARNING_RATE = 0.001     # Adjusted for stability
-    EPOCHS = 100               # Decreased to prevent severe overfitting
+    LEARNING_RATE = 0.0007     # Adjusted for stability
+    EPOCHS = 140               # Decreased to prevent severe overfitting
     VALIDATION_SPLIT = 0.15  
     WEIGHT_DECAY = 2e-3        # Kept high to act as strong regularization
     GRADIENT_CLIP = 1.0  
@@ -58,7 +58,7 @@ class Config:
     CHECKPOINT_DIR = "checkpoints_prod"
     
     # Seed optimization
-    SEED_SEARCH_RANGE = 150  # Number of random seeds to test
+    SEED_SEARCH_RANGE = 20  # Number of random seeds to test
     SEED_SEARCH_EPOCHS = 24  # Quick epochs for seed evaluation
     BEST_SEED_FILE = "best_seed.json"  # File to store best seed
 
