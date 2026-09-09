@@ -35,8 +35,8 @@ class Config:
 
     # Training parameters optimized for 55k positions
     BATCH_SIZE = 512  
-    LEARNING_RATE = 0.0007     # Adjusted for stability
-    EPOCHS = 140               # Decreased to prevent severe overfitting
+    LEARNING_RATE = 0.00083     # Adjusted for stability
+    EPOCHS = 100               # Decreased to prevent severe overfitting
     VALIDATION_SPLIT = 0.15  
     WEIGHT_DECAY = 2e-3        # Kept high to act as strong regularization
     GRADIENT_CLIP = 1.0  

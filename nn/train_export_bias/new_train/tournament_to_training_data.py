@@ -20,6 +20,7 @@ from typing import List, Dict, Optional
 import warnings
 warnings.filterwarnings("ignore")
 
+ts = int(time.time())
 
 # ============================================================
 # Configuration
@@ -41,8 +42,8 @@ class Config:
     STOCKFISH_PATH = "stockfish" # change if needed
 
     # Output
-    OUTPUT_PREFIX = "tournament_sf_data"
-
+    OUTPUT_PREFIX = "tournament_sf_data"+  str(ts) 
+    "training_data" +  str(ts) + "_prod.bin"
 
 # ============================================================
 # NNUE Model (same architecture as your engine)
