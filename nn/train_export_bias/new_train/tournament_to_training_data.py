@@ -20,7 +20,6 @@ from typing import List, Dict, Optional
 import warnings
 warnings.filterwarnings("ignore")
 
-ts = int(time.time())
 
 # ============================================================
 # Configuration
@@ -35,15 +34,15 @@ class Config:
 
     # Tournament settings
     GAMES_PER_MODEL = 1          # how many games each NNUE plays vs Stockfish
-    NNUE_TIME = 1.08             # seconds the NNUE is allowed to think
-    SF_TIME = 1.25               # seconds Stockfish is allowed when moving
+    NNUE_TIME = 0.08             # seconds the NNUE is allowed to think
+    SF_TIME = 0.25               # seconds Stockfish is allowed when moving
     SF_DEPTH = 24                # depth used only for the *stored* evaluation
     MAX_MOVES = 160
     STOCKFISH_PATH = "stockfish" # change if needed
 
     # Output
-    OUTPUT_PREFIX = "tournament_sf_data"+  str(ts) 
-    "training_data" +  str(ts) + "_prod.bin"
+    OUTPUT_PREFIX = "tournament_sf_data"
+
 
 # ============================================================
 # NNUE Model (same architecture as your engine)

@@ -2,6 +2,7 @@
 """
 Visualizador de Dados NNUE - Versão Adaptada
 Exibe posições, detalhes, avaliações e features extras
++ Opção para remover as primeiras jogadas de todos os jogos
 """
 
 import struct
@@ -9,6 +10,7 @@ import numpy as np
 import chess
 import json
 import csv
+import os
 from typing import Dict, List, Tuple, Optional
 
 # ============== CONFIGURAÇÃO ==============
@@ -16,6 +18,12 @@ CONFIG = {
     'NNUE_INPUT_DIM': 780,
     'DATA_FILE': 'training_data_prod.bin'
 }
+
+# ============== CONSTANTES ==============
+FEATURES_SIZE = 780 * 4          # 3120 bytes
+SCORES_SIZE = 12                 # 3 floats
+POSITION_SIZE = FEATURES_SIZE + SCORES_SIZE  # 3132 bytes
+HEADER_SIZE = 8
 
 # ============== LEITURA DOS DADOS ==============
 
@@ -86,13 +94,13 @@ def decode_board_from_features(features: np.ndarray) -> chess.Board:
     
     # Seta direitos de roque (features 768-771)
     if features[768] > 0.5:
-        board.castling_rights |= chess.BB_A1  # Brancas, roque rei
+        board.castling_rights |= chess.BB_A1
     if features[769] > 0.5:
-        board.castling_rights |= chess.BB_H1  # Brancas, roque dama
+        board.castling_rights |= chess.BB_H1
     if features[770] > 0.5:
-        board.castling_rights |= chess.BB_A8  # Pretas, roque rei
+        board.castling_rights |= chess.BB_A8
     if features[771] > 0.5:
-        board.castling_rights |= chess.BB_H8  # Pretas, roque dama
+        board.castling_rights |= chess.BB_H8
     
     return board
 
@@ -112,7 +120,6 @@ def get_position_details(board: chess.Board) -> Dict:
         'is_endgame': False
     }
     
-    # Conta peças
     piece_count = 0
     white_material = 0
     black_material = 0
@@ -138,9 +145,8 @@ def get_position_details(board: chess.Board) -> Dict:
     details['is_check'] = board.is_check()
     details['is_checkmate'] = board.is_checkmate()
     details['is_stalemate'] = board.is_stalemate()
-    details['is_endgame'] = piece_count <= 10  # Poucas peças = final
+    details['is_endgame'] = piece_count <= 10
     
-    # Determina fase do jogo
     if piece_count >= 28:
         details['phase'] = 'Abertura'
     elif piece_count >= 16:
@@ -148,7 +154,6 @@ def get_position_details(board: chess.Board) -> Dict:
     else:
         details['phase'] = 'Final'
     
-    # Conta atacantes (simplificado)
     attackers = 0
     for square in range(64):
         if board.piece_at(square):
@@ -166,7 +171,6 @@ def analyze_features(features: np.ndarray) -> Dict:
     analysis = {
         'active_features': 0,
         'extra_features': {},
-        'piece_counts': {'white': {}, 'black': {}},
         'castling': {'white': {'kingside': False, 'queenside': False},
                     'black': {'kingside': False, 'queenside': False}},
         'en_passant': None,
@@ -178,10 +182,8 @@ def analyze_features(features: np.ndarray) -> Dict:
         'king_safety': 0
     }
     
-    # Conta features ativas (posições com peças)
     analysis['active_features'] = int(np.sum(features[:768] > 0.5))
     
-    # Features extras (768-780)
     extra_names = [
         'castling_white_kingside', 'castling_white_queenside',
         'castling_black_kingside', 'castling_black_queenside',
@@ -194,19 +196,16 @@ def analyze_features(features: np.ndarray) -> Dict:
     for i, name in enumerate(extra_names):
         analysis['extra_features'][name] = features[768 + i]
     
-    # Castling
     analysis['castling']['white']['kingside'] = features[768] > 0.5
     analysis['castling']['white']['queenside'] = features[769] > 0.5
     analysis['castling']['black']['kingside'] = features[770] > 0.5
     analysis['castling']['black']['queenside'] = features[771] > 0.5
     
-    # En passant
     if features[772] > 0 or features[773] > 0:
         file_idx = int(features[772] * 7)
         rank_idx = int(features[773] * 7)
         analysis['en_passant'] = chess.square(file_idx, rank_idx)
     
-    # Outros
     analysis['halfmove_clock'] = features[774] * 50
     analysis['fullmove_number'] = int(features[775] * 50)
     analysis['side_to_move'] = 'black' if features[777] > 0.5 else 'white'
@@ -215,6 +214,226 @@ def analyze_features(features: np.ndarray) -> Dict:
     analysis['king_safety'] = features[780] if len(features) > 780 else 0
     
     return analysis
+
+# ============== NOVA FUNÇÃO: REMOVER PRIMEIRAS JOGADAS ==============
+
+def get_move_number_from_features(features: np.ndarray) -> int:
+    """
+    Extrai o número do movimento (fullmove number) das features NNUE.
+    
+    Baseado no visualizador:
+    - Full-move number 1  → valor 0.020
+    - Full-move number 2  → valor 0.040
+    - Full-move number 3  → valor 0.060
+    - Full-move number 13 → valor 0.260
+    
+    Fórmula: move_number = valor × 50
+    """
+    # Feature 775 é o fullmove number (conforme analyze_features)
+    FEATURE_INDEX = 775  # ⬅️ AJUSTE SE NECESSÁRIO
+    
+    try:
+        value = float(features[FEATURE_INDEX])
+        move_number = int(round(value * 50))
+        return move_number
+    except:
+        return 0
+
+def remove_first_moves(
+    input_file: str,
+    output_file: str,
+    max_move: int = 3,
+    method: str = 'feature'
+) -> bool:
+    """
+    Remove as primeiras N jogadas de todos os jogos do arquivo .bin
+    
+    Args:
+        input_file: Arquivo .bin de entrada
+        output_file: Arquivo .bin de saída
+        max_move: Número máximo de movimentos a remover (padrão 3)
+        method: 'feature' (lê move number das features) ou 'piece' (conta peças)
+    
+    Returns:
+        True se sucesso, False caso contrário
+    """
+    print("\n" + "="*80)
+    print(f"🔪 REMOVENDO PRIMEIRAS {max_move} JOGADAS DE TODOS OS JOGOS")
+    print("="*80)
+    
+    if not os.path.exists(input_file):
+        print(f"❌ Arquivo não encontrado: {input_file}")
+        return False
+    
+    # Lê cabeçalho
+    with open(input_file, 'rb') as f:
+        magic, total_positions = struct.unpack('4sI', f.read(8))
+        if magic != b'NNUE':
+            print(f"❌ Magic number inválido: {magic}")
+            return False
+    
+    print(f"\n📂 Arquivo de entrada: {input_file}")
+    print(f"📊 Total de posições: {total_positions:,}")
+    print(f"📏 Tamanho: {os.path.getsize(input_file) / 1024 / 1024:.2f} MB")
+    print(f"🔧 Método: {'Feature (move number)' if method == 'feature' else 'Piece count'}")
+    print(f"🎯 Remover movimentos: 1 até {max_move}")
+    
+    # Estatísticas
+    total_removed = 0
+    total_kept = 0
+    move_stats = {}
+    
+    print(f"\n🔍 Processando posições...")
+    
+    with open(input_file, 'rb') as in_f, open(output_file, 'wb') as out_f:
+        # Escreve cabeçalho temporário
+        out_f.write(b'NNUE')
+        out_f.write(struct.pack('I', 0))
+        
+        # Pula cabeçalho de entrada
+        in_f.seek(HEADER_SIZE)
+        
+        for i in range(total_positions):
+            pos_data = in_f.read(POSITION_SIZE)
+            if len(pos_data) < POSITION_SIZE:
+                print(f"⚠️  Arquivo truncado na posição {i}")
+                break
+            
+            features = np.frombuffer(pos_data[:FEATURES_SIZE], dtype=np.float32)
+            
+            # Decide se remove ou mantém
+            if method == 'feature':
+                move_number = get_move_number_from_features(features)
+                should_remove = (move_number <= max_move)
+            else:  # 'piece'
+                piece_count = int(np.sum(features[:768] > 0.5))
+                should_remove = (piece_count >= 32)
+                move_number = -1  # Não disponível
+            
+            # Estatística
+            move_stats[move_number] = move_stats.get(move_number, 0) + 1
+            
+            if should_remove:
+                total_removed += 1
+            else:
+                out_f.write(pos_data)
+                total_kept += 1
+            
+            if (i + 1) % 10000 == 0:
+                print(f"  Progresso: {i+1:,}/{total_positions:,}")
+        
+        # Atualiza cabeçalho
+        out_f.seek(4)
+        out_f.write(struct.pack('I', total_kept))
+    
+    # Estatísticas de movimentos (se método feature)
+    if method == 'feature' and move_stats:
+        print(f"\n📊 Distribuição de movimentos encontrados:")
+        for move in sorted(move_stats.keys()):
+            if move >= 0:
+                count = move_stats[move]
+                pct = count / total_positions * 100
+                marker = " ← REMOVIDO" if move <= max_move else ""
+                print(f"  Move {move:2d}: {count:6,} ({pct:5.1f}%){marker}")
+    
+    # Resultado final
+    print(f"\n✅ Resultado:")
+    print(f"  📊 Posições originais: {total_positions:,}")
+    print(f"  🗑️  Posições removidas: {total_removed:,} ({total_removed/total_positions*100:.1f}%)")
+    print(f"  💾 Posições mantidas:   {total_kept:,} ({total_kept/total_positions*100:.1f}%)")
+    print(f"  📁 Arquivo de saída: {output_file}")
+    print(f"  📏 Tamanho: {os.path.getsize(output_file) / 1024 / 1024:.2f} MB")
+    
+    # Verifica integridade
+    with open(output_file, 'rb') as f:
+        magic, count = struct.unpack('4sI', f.read(8))
+        expected_size = 8 + count * POSITION_SIZE
+        actual_size = os.path.getsize(output_file)
+        
+        if magic == b'NNUE' and expected_size == actual_size:
+            print(f"\n✅ Arquivo de saída válido!")
+            print(f"   Posições: {count:,}")
+        else:
+            print(f"\n❌ Arquivo de saída INVÁLIDO!")
+            print(f"   Esperado: {expected_size} bytes, Atual: {actual_size} bytes")
+            return False
+    
+    return True
+
+def interactive_remove_first_moves(filename: str):
+    """
+    Interface interativa para remover primeiras jogadas
+    """
+    print("\n" + "="*80)
+    print("🔪 REMOVER PRIMEIRAS JOGADAS DE TODOS OS JOGOS")
+    print("="*80)
+    
+    # Verifica arquivo de entrada
+    if not os.path.exists(filename):
+        print(f"❌ Arquivo não encontrado: {filename}")
+        return
+    
+    # Sugere nome de saída
+    base, ext = os.path.splitext(filename)
+    suggested_output = f"{base}_no_opening{ext}"
+    
+    # Pergunta quantos movimentos remover
+    print(f"\n📁 Arquivo de entrada: {filename}")
+    print(f"📏 Tamanho: {os.path.getsize(filename) / 1024 / 1024:.2f} MB")
+    
+    print(f"\n🎯 Quantas jogadas remover do início?")
+    print(f"  1 = remove apenas o 1º movimento (plies 1-2)")
+    print(f"  2 = remove os 2 primeiros movimentos (plies 1-4)")
+    print(f"  3 = remove os 3 primeiros movimentos (plies 1-6) [padrão]")
+    print(f"  5 = remove os 5 primeiros movimentos (plies 1-10)")
+    print(f" 10 = remove os 10 primeiros movimentos (plies 1-20)")
+    
+    max_move_str = input(f"\nNúmero de movimentos a remover [3]: ").strip()
+    max_move = int(max_move_str) if max_move_str else 3
+    
+    # Método de detecção
+    print(f"\n🔧 Método de detecção:")
+    print(f"  1. Feature (lê move number das features) [recomendado]")
+    print(f"  2. Piece count (conta peças no tabuleiro)")
+    
+    method_choice = input(f"\nEscolha [1]: ").strip()
+    method = 'piece' if method_choice == '2' else 'feature'
+    
+    # Arquivo de saída
+    output = input(f"\n📁 Arquivo de saída [{suggested_output}]: ").strip()
+    if not output:
+        output = suggested_output
+    
+    # Confirmação
+    print(f"\n📊 Resumo:")
+    print(f"  Entrada: {filename}")
+    print(f"  Saída:   {output}")
+    print(f"  Remover: primeiros {max_move} movimentos")
+    print(f"  Método:  {method}")
+    
+    confirm = input(f"\nConfirmar? (S/n): ").strip()
+    if confirm.lower() == 'n':
+        print("❌ Operação cancelada!")
+        return
+    
+    # Executa
+    success = remove_first_moves(filename, output, max_move, method)
+    
+    if success:
+        print("\n" + "="*80)
+        print("✅ PROCESSO CONCLUÍDO COM SUCESSO!")
+        print("="*80)
+        
+        # Oferece visualizar resultado
+        view = input(f"\n🔍 Deseja visualizar o arquivo filtrado? (s/N): ").strip()
+        if view.lower() == 's':
+            positions, total = read_positions(output, max_positions=5)
+            print(f"\n📊 Primeiras posições do arquivo filtrado:")
+            for pos in positions:
+                board = decode_board_from_features(pos['features'])
+                analysis = analyze_features(pos['features'])
+                move_num = analysis['fullmove_number']
+                print(f"  Pos #{pos['index']}: Move {move_num:.0f} | FEN: {board.fen()}")
 
 # ============== VISUALIZAÇÃO PRINCIPAL ==============
 
@@ -227,24 +446,20 @@ def visualize_position(position: Dict, index: int, show_board: bool = True):
     result = position['result']
     tactical = position['tactical']
     
-    # Decodifica tabuleiro
     board = decode_board_from_features(features)
     details = get_position_details(board)
     analysis = analyze_features(features)
     
-    # ===== CABEÇALHO =====
     print(f"\n{'='*80}")
     print(f"📍 POSIÇÃO #{index}")
     print(f"{'='*80}")
     
-    # ===== POSIÇÃO =====
     print(f"\n{'='*30} POSIÇÃO {'='*30}")
     print(board)
     print(f"\n📊 FEN: {board.fen()}")
     print(f"🎯 Vez: {'Brancas' if board.turn == chess.WHITE else 'Pretas'}")
     print(f"📋 Movimentos legais: {details['legal_moves']}")
     
-    # ===== DETALHES =====
     print(f"\n{'='*30} DETALHES {'='*30}")
     print(f"🔹 Fase do jogo: {details['phase']}")
     print(f"🔹 Peças no tabuleiro: {details['piece_count']}")
@@ -255,14 +470,12 @@ def visualize_position(position: Dict, index: int, show_board: bool = True):
     print(f"🔹 Final de jogo: {'Sim' if details['is_endgame'] else 'Não'}")
     print(f"🔹 Atacantes estimados: {details['attackers']}")
     
-    # ===== AVALIAÇÕES =====
     print(f"\n{'='*30} AVALIAÇÕES {'='*30}")
     print(f"🎯 Score Stockfish:      {score:+.3f} (centipawns: {score*100:.1f})")
     print(f"🎯 Score Tático:         {tactical:+.3f}")
     print(f"🎯 Score Combinado:      {score*0.7 + tactical*0.3:+.3f}")
     print(f"🎯 Resultado final:      {result:.2f} {'(Vitória Brancas)' if result == 1 else '(Vitória Pretas)' if result == 0 else '(Empate)'}")
     
-    # Interpretação do Score
     if abs(score) < 0.5:
         interpretation = "⚖️  Posição equilibrada"
     elif score > 0:
@@ -282,12 +495,10 @@ def visualize_position(position: Dict, index: int, show_board: bool = True):
     
     print(f"💡 Interpretação: {interpretation}")
     
-    # ===== FEATURES EXTRAS =====
     print(f"\n{'='*30} FEATURES EXTRAS (12) {'='*30}")
     print(f"📋 Ativas: {analysis['active_features']} posições ocupadas")
     print()
     
-    # Formatação em tabela
     print("┌────────────────────────┬──────────┬─────────────────────────────┐")
     print("│ Feature                │ Valor    │ Interpretação               │")
     print("├────────────────────────┼──────────┼─────────────────────────────┤")
@@ -335,7 +546,6 @@ def export_to_csv(filename: str, output: str = "positions.csv", max_positions: i
     with open(output, 'w', newline='') as f:
         writer = csv.writer(f)
         
-        # Cabeçalho com todas as features
         header = ['id', 'score', 'result', 'tactical']
         header += [f'f_{i}' for i in range(780)]
         writer.writerow(header)
@@ -386,13 +596,11 @@ def main():
     print("🔍 VISUALIZADOR DE DADOS NNUE")
     print("="*80)
     
-    # Pede arquivo
     filename = input(f"\n📁 Arquivo de dados [{CONFIG['DATA_FILE']}]: ").strip()
     if not filename:
         filename = CONFIG['DATA_FILE']
     
     try:
-        # Carrega dados
         positions, total = read_positions(filename, max_positions=100)
         print(f"\n✅ Carregado {len(positions)} posições de {total}")
         
@@ -405,12 +613,12 @@ def main():
             print("  4. Exportar para CSV")
             print("  5. Exportar para JSON")
             print("  6. Estatísticas do dataset")
-            print("  7. Sair")
+            print("  7. Remover primeiras jogadas de todos os jogos")  # ⬅️ NOVA OPÇÃO
+            print("  8. Sair")  # ⬅️ MUDOU DE 7 PARA 8
             
             option = input("\nEscolha uma opção: ").strip()
             
             if option == '1':
-                # Próxima posição
                 if not hasattr(main, 'current_idx'):
                     main.current_idx = 0
                 else:
@@ -424,7 +632,6 @@ def main():
                 input("\nPressione Enter para continuar...")
                 
             elif option == '2':
-                # Posição específica
                 idx = int(input(f"\nÍndice (0-{len(positions)-1}): "))
                 if 0 <= idx < len(positions):
                     visualize_position(positions[idx], idx)
@@ -434,7 +641,6 @@ def main():
                 input("\nPressione Enter para continuar...")
                 
             elif option == '3':
-                # Posições aleatórias
                 import random
                 num = int(input("\nQuantas posições aleatórias? "))
                 for _ in range(min(num, 10)):
@@ -444,23 +650,24 @@ def main():
                 input("\nPressione Enter para continuar...")
                 
             elif option == '4':
-                # Exportar CSV
                 max_pos = int(input("\nMáximo de posições para exportar: "))
                 export_to_csv(filename, max_positions=max_pos)
                 input("\nPressione Enter para continuar...")
                 
             elif option == '5':
-                # Exportar JSON
                 max_pos = int(input("\nMáximo de posições para exportar: "))
                 export_to_json(filename, max_positions=max_pos)
                 input("\nPressione Enter para continuar...")
                 
             elif option == '6':
-                # Estatísticas
                 print_statistics(positions)
                 input("\nPressione Enter para continuar...")
                 
-            elif option == '7':
+            elif option == '7':  # ⬅️ NOVA OPÇÃO
+                interactive_remove_first_moves(filename)
+                input("\nPressione Enter para continuar...")
+                
+            elif option == '8':  # ⬅️ MUDOU DE 7 PARA 8
                 print("\n👋 Saindo...")
                 break
             else:
